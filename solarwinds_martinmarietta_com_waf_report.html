@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>CloudGuard WAF Recon • solarwinds.martinmarietta.com</title>
+        <style>
+            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+            body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #f8fafc 0%, #e0f2fe 100%); margin:0; padding:40px 20px; }
+            .container { max-width:1100px; margin:0 auto; background:white; border-radius:16px; box-shadow:0 20px 25px -5px rgb(0 0 0 / 0.1); overflow:hidden; }
+            header { background:linear-gradient(90deg, #1e40af, #3b82f6); color:white; padding:40px; text-align:center; }
+            h1 { margin:0; font-size:2.5rem; }
+            .section { padding:35px 50px; border-bottom:1px solid #e2e8f0; }
+            h2 { color:#1e40af; margin:0 0 20px 0; }
+            pre { background:#0f172a; color:#e0f2fe; padding:22px; border-radius:12px; overflow-x:auto; line-height:1.6; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <header>
+                <h1>🌐 Website Detective</h1>
+                <p>CloudGuard WAF Reconnaissance Report</p>
+                <p><strong>https://solarwinds.martinmarietta.com/</strong> — Scanned on May 08, 2026 at 15:11:00</p>
+            </header>
+            <div class="section"><h2>✅ Connection</h2><pre>Status Code : 200
+Total Time : 0.084 seconds</pre></div>
+            <div class="section"><h2>📡 Important Headers</h2><pre>Server: nginx
+Content-Type: text/html; charset=utf-8
+Strict-Transport-Security: max-age=157680000, max-age=157680000
+Via: 1.1 1d45cc40d1dd29d2b3aaefb9f85bceee.cloudfront.net (CloudFront)
+X-Amz-Cf-Id: xoYDvM-vWJ_BPJz2pauIj5ezRks2m_mAx3uzg1nnuRmhAdSgDWhw5w==
+X-Amz-Cf-Pop: JFK50-P6</pre></div>
+            <div class="section"><h2>🌐 Full DNS Records (incl. CNAME)</h2><pre>A:
+18.164.116.42
+     18.164.116.16
+     18.164.116.66
+     18.164.116.60
+
+CNAME:
+solarwindsmartinmariettacom.077ad86c-f38f-4182-8bcb-9ca0158afded.0f574441a9df.i2.checkpoint.com.
+
+MX: No records
+
+NS:
+ns-613.awsdns-12.net.
+     ns-1406.awsdns-47.org.
+     ns-1961.awsdns-53.co.uk.
+     ns-495.awsdns-61.com.
+
+TXT: No records
+
+SOA:
+ns-495.awsdns-61.com. awsdns-hostmaster.amazon.com. 1 7200 900 1209600 86400
+
+CAA: No records</pre></div>
+            <div class="section"><h2>🌍 IP Investigations</h2><pre>IP: 18.164.116.42
+      Org      : AS16509 Amazon.com, Inc.
+      Location : New York City, New York, US
+      Hostname : server-18-164-116-42.jfk50.r.cloudfront.net
+
+IP: 18.164.116.16
+      Org      : AS16509 Amazon.com, Inc.
+      Location : New York City, New York, US
+      Hostname : server-18-164-116-16.jfk50.r.cloudfront.net
+
+IP: 18.164.116.66
+      Org      : AS16509 Amazon.com, Inc.
+      Location : New York City, New York, US
+      Hostname : server-18-164-116-66.jfk50.r.cloudfront.net
+
+IP: 18.164.116.60
+      Org      : AS16509 Amazon.com, Inc.
+      Location : New York City, New York, US
+      Hostname : server-18-164-116-60.jfk50.r.cloudfront.net</pre></div>
+            <div class="section"><h2>🌐 CDN Detection</h2><pre>☁️ AWS CloudFront</pre></div>
+            <div class="section"><h2>🚦 Load Balancer / Proxy</h2><pre>🚦 Nginx Reverse Proxy / LB</pre></div>
+            <div class="section"><h2>🛡️ WAF Detection</h2><pre>🔥 Check Point CloudGuard WAF (Confirmed via i2.checkpoint.com CNAME)</pre></div>
+            <div class="section"><h2>🔗 Third-Party Connections</h2><pre>No third-party connections</pre></div>
+            <div class="section"><h2>👤 WHOIS</h2><pre>Registrar : DomainSpot LLC
+Created   : 1996-08-18
+Expires   : 2027-08-17</pre></div>
+            <div class="section"><h2>🔒 SSL Certificate</h2><pre>{'subject': ((('commonName', 'solarwinds.martinmarietta.com'),),), 'issuer': ((('countryName', 'US'),), (('organizationName', 'Amazon'),), (('commonName', 'Amazon RSA 2048 M04'),)), 'version': 3, 'serialNumber': '04B83A14CFDF750CDB7BC63BEF451B1C', 'notBefore': 'May  8 00:00:00 2026 GMT', 'notAfter': 'Nov 21 23:59:59 2026 GMT', 'subjectAltName': (('DNS', 'solarwinds.martinmarietta.com'),), 'OCSP': ('http://ocsp.r2m04.amazontrust.com',), 'caIssuers': ('http://crt.r2m04.amazontrust.com/r2m04.cer',), 'crlDistributionPoints': ('http://crl.r2m04.amazontrust.com/r2m04.crl',)}</pre></div>
+            <div class="section"><h2>🛠️ Technology Stack</h2><pre>Javascript-frameworks: AngularJS, Modernizr, jQuery
+Operating-systems: Windows Server
+Web-frameworks: Microsoft ASP.NET
+Web-servers: Nginx, IIS</pre></div>
+            <div class="section"><h2>🧠 Smart Detective</h2><pre>☁️ Cloud Provider: Amazon Web Services (AWS) - Confirmed</pre></div>
+            <div class="section"><h2>🔐 Security Headers</h2><pre>✅ Strict-Transport-Security: Present
+❌ Content-Security-Policy: Missing (HIGH priority)
+❌ X-Frame-Options: Missing
+❌ X-Content-Type-Options: Missing
+❌ Referrer-Policy: Missing</pre></div>
+            <div class="section"><h2>🚀 CloudGuard WAF Summary</h2><pre style="background:#f0f9ff;color:#1e40af;">• CNAME records included
+• CloudGuard WAF auto-detected if i2.checkpoint.com present
+• CDN, Load Balancer & WAF fingerprinted
+• Ready for CloudGuard deployment</pre></div>
+        </div>
+    </body>
+    </html>

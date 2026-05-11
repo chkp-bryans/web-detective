@@ -1,0 +1,6 @@
+flask
+requests
+dnspython
+python-whois
+builtwith
+beautifulsoup4

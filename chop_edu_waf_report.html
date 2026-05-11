@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>CloudGuard WAF Recon • chop.edu</title>
+        <style>
+            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+            body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #f8fafc 0%, #e0f2fe 100%); margin:0; padding:40px 20px; }
+            .container { max-width:1100px; margin:0 auto; background:white; border-radius:16px; box-shadow:0 20px 25px -5px rgb(0 0 0 / 0.1); overflow:hidden; }
+            header { background:linear-gradient(90deg, #1e40af, #3b82f6); color:white; padding:40px; text-align:center; }
+            h1 { margin:0; font-size:2.5rem; }
+            .section { padding:35px 50px; border-bottom:1px solid #e2e8f0; }
+            h2 { color:#1e40af; margin:0 0 20px 0; }
+            pre { background:#0f172a; color:#e0f2fe; padding:22px; border-radius:12px; overflow-x:auto; line-height:1.6; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <header>
+                <h1>🌐 Website Detective</h1>
+                <p>CloudGuard WAF Reconnaissance Report</p>
+                <p><strong>https://chop.edu</strong> — Scanned on April 29, 2026 at 13:26:35</p>
+            </header>
+            <div class="section"><h2>✅ Connection</h2><p style="font-size:1.4rem;"><strong>200 (OK)</strong></p></div>
+            <div class="section"><h2>📡 Important Headers</h2><pre>Server: nginx
+Content-Type: text/html; charset=UTF-8
+Strict-Transport-Security: max-age=1000, max-age=300
+Via: 1.1 varnish, 1.1 varnish, 1.1 varnish, 1.1 varnish</pre></div>
+            <div class="section"><h2>🌐 Full DNS Records</h2><pre>A:
+23.185.0.3
+
+MX:
+10 chop-edu.mail.protection.outlook.com.
+
+NS:
+ze2plecns001.chop.edu.
+     extdns1.chop.edu.
+     extdns2.chop.edu.
+     extdns3.chop.edu.
+     zcnplecns001.chop.edu.
+
+TXT:
+"docusign=3738c455-4a3d-4699-997a-48b9717efdfe"
+     "/XGPSCHC7I0HKtJiWo6BSGltoGFtJiqqKhRll2iV/aq08dUPOr1VONoI4qPmkljEzHE4nkRbhDHEiFIk91eMAA=="
+     "6BKWMdNTxKezm6vZ8EQa5uA8Ljsz0sC8zfcHzLR6NBadZC/CZ50CXwdzpiH4458hBK8T/xXCnHz0Icd49hgkdg=="
+     "434A-D677-CC9F-8ABA-0258-EC99-9282-844A"
+     "MS=ms22618234"
+     "MS=3C15DF287A564C945893458807666F16A8ADC956"
+     "docusign=035cd9f0-9ae4-46dd-94bb-f7a0f5a43b19"
+     "domain-verification=68452dac-47e1-aed2-ef06-e8d07eb0fb59"
+     "d365mktkey=9WldaKzew5aHaMxxi66UTxBLgxOTxFXN78V3J9mGt08x"
+     "vkmTzAMrEXnLhc+q6TOXFv3TTg3qoxgGdX2+0V501tts+jQTf1lvMMMGEsKeldsWBwWhn58Eu83ys0MMJbW1SA=="
+     "70399e00-aa0e-4234-a231-7696863bbb6f"
+     "autodesk-domain-verification=FjJ5nzTwJ-1R0XUHtjg0"
+     "apple-domain-verification=pSO9X9Ur2RYCulzn5b2AUs1oENIUjnIOC-ZW2Lqt9jA"
+     "atlassian-domain-verification=P1IKR5NXLEB2qPRyQcoA3aeMMioDo2inwmt7TKBtnElt0zfHYQKcZlfI3/pwCxpX"
+     "jamf-site-verification=YR0d8WEVOOc2IaUFAyccyg"
+     "hcp-domain-verification=2903e6258474d07b5760cd6962a1a927a2f45fe459730da583fcd2af545d4acc"
+     "00DDF00000XRCOG=1TBDF0000004CA;00Dj0000001omsQ=1TBKi000000blKM"
+     "v=spf1 include:_u.chop.edu._spf.smart.ondmarc.com include:spf.protection.outlook.com -all"
+     "cisco-ci-domain-verification=4204fca293f1aa4ea778951076f37654ec285dfbc6fbe1f64bc9a599efa13b01"
+
+SOA:
+extdns1.chop.edu. hayess.email.chop.edu. 3000003177 10800 3600 1209600 1800</pre></div>
+            <div class="section"><h2>🌍 IP Investigations</h2><pre>IP: 23.185.0.3
+Org: AS54113 Fastly, Inc.
+Location: San Francisco, California, US
+Hostname: None</pre></div>
+            <div class="section"><h2>👤 WHOIS</h2><pre>Registrar : N/A
+Created   : 1994-06-23
+Expires   : 2027-07-31</pre></div>
+            <div class="section"><h2>🔒 SSL Certificate</h2><pre>{'subject': ((('commonName', 'chop.edu'),),), 'issuer': ((('countryName', 'US'),), (('organizationName', "Let's Encrypt"),), (('commonName', 'R13'),)), 'version': 3, 'serialNumber': '069AB93F8F080976EB2F72032AEBA43A0F92', 'notBefore': 'Apr 16 20:07:44 2026 GMT', 'notAfter': 'Jul 15 20:07:43 2026 GMT', 'subjectAltName': (('DNS', 'chop.edu'), ('DNS', 'forms.chop.edu'), ('DNS', 'pathways.chop.edu'), ('DNS', 'www-preview.chop.edu'), ('DNS', 'www.chop.edu'), ('DNS', 'www.pathways.chop.edu')), 'caIssuers': ('http://r13.i.lencr.org/',), 'crlDistributionPoints': ('http://r13.c.lencr.org/19.crl',)}</pre></div>
+            <div class="section"><h2>🛠️ Technology Stack</h2><pre>Cms: Drupal
+Programming-languages: PHP
+Web-servers: Nginx</pre></div>
+            <div class="section"><h2>🧠 Smart Detective</h2><pre>📧 Email: Microsoft 365
+📄 Service: DocuSign
+🍎 Service: Apple Business / iCloud
+📐 Service: Autodesk</pre></div>
+            <div class="section"><h2>🔐 Security Headers</h2><pre>✅ Strict-Transport-Security: Present
+❌ Content-Security-Policy: Missing (HIGH priority)
+❌ X-Frame-Options: Missing
+❌ X-Content-Type-Options: Missing
+❌ Referrer-Policy: Missing</pre></div>
+            <div class="section"><h2>🚀 CloudGuard WAF Summary</h2><pre style="background:#f0f9ff;color:#1e40af;">• Backend / CDN detected
+• AI services spotted (Anthropic, OpenAI, etc.)
+• Multiple A records + IP details investigated
+• Missing key security headers → CloudGuard can enforce them</pre></div>
+        </div>
+    </body>
+    </html>

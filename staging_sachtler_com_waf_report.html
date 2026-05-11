@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>CloudGuard WAF Recon • staging.sachtler.com</title>
+        <style>
+            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+            body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #f8fafc 0%, #e0f2fe 100%); margin:0; padding:40px 20px; }
+            .container { max-width:1100px; margin:0 auto; background:white; border-radius:16px; box-shadow:0 20px 25px -5px rgb(0 0 0 / 0.1); overflow:hidden; }
+            header { background:linear-gradient(90deg, #1e40af, #3b82f6); color:white; padding:40px; text-align:center; }
+            h1 { margin:0; font-size:2.5rem; }
+            .section { padding:35px 50px; border-bottom:1px solid #e2e8f0; }
+            h2 { color:#1e40af; margin:0 0 20px 0; }
+            pre { background:#0f172a; color:#e0f2fe; padding:22px; border-radius:12px; overflow-x:auto; line-height:1.6; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <header>
+                <h1>🌐 Website Detective</h1>
+                <p>CloudGuard WAF Reconnaissance Report</p>
+                <p><strong>https://staging.sachtler.com</strong> — Scanned on May 05, 2026 at 10:04:55</p>
+            </header>
+            <div class="section"><h2>✅ Connection</h2><pre>Status Code : 401
+Total Time : 0.520 seconds</pre></div>
+            <div class="section"><h2>📡 Important Headers</h2><pre>Server: nginx
+Content-Type: text/html
+Via: 1.1 75e6abfbc0fa1366e1af36850a56c78e.cloudfront.net (CloudFront)
+X-Amz-Cf-Id: a0U7O18OySNAsaLs2bEhL_pPYPAX5_F-sOgbYDaf1CRsIFh7J30ZCQ==
+X-Amz-Cf-Pop: PHL51-P3</pre></div>
+            <div class="section"><h2>🌐 Full DNS Records (incl. CNAME)</h2><pre>A:
+13.35.107.3
+     13.35.107.89
+     13.35.107.78
+     13.35.107.13
+
+CNAME:
+stagingsachtlercom.2afa58c7-4346-428c-9742-b68a0eaf12b8.ea625c15114d.i2.checkpoint.com.
+
+MX: No records
+
+NS:
+ns-697.awsdns-23.net.
+     ns-1288.awsdns-33.org.
+     ns-1704.awsdns-21.co.uk.
+     ns-274.awsdns-34.com.
+
+TXT: No records
+
+SOA:
+ns-1288.awsdns-33.org. awsdns-hostmaster.amazon.com. 1 7200 900 1209600 86400
+
+CAA: No records</pre></div>
+            <div class="section"><h2>🌍 IP Investigations</h2><pre>IP: 13.35.107.3
+      Org      : AS16509 Amazon.com, Inc.
+      Location : Folcroft, Pennsylvania, US
+      Hostname : server-13-35-107-3.phl51.r.cloudfront.net
+
+IP: 13.35.107.89
+      Org      : AS16509 Amazon.com, Inc.
+      Location : Folcroft, Pennsylvania, US
+      Hostname : server-13-35-107-89.phl51.r.cloudfront.net
+
+IP: 13.35.107.78
+      Org      : AS16509 Amazon.com, Inc.
+      Location : Folcroft, Pennsylvania, US
+      Hostname : server-13-35-107-78.phl51.r.cloudfront.net
+
+IP: 13.35.107.13
+      Org      : AS16509 Amazon.com, Inc.
+      Location : Folcroft, Pennsylvania, US
+      Hostname : server-13-35-107-13.phl51.r.cloudfront.net</pre></div>
+            <div class="section"><h2>🌐 CDN Detection</h2><pre>☁️ AWS CloudFront</pre></div>
+            <div class="section"><h2>🚦 Load Balancer / Proxy</h2><pre>🚦 Nginx Reverse Proxy / LB</pre></div>
+            <div class="section"><h2>🛡️ WAF Detection</h2><pre>🔥 Check Point CloudGuard WAF (Confirmed via i2.checkpoint.com CNAME)</pre></div>
+            <div class="section"><h2>🔗 Third-Party Connections</h2><pre>No third-party connections</pre></div>
+            <div class="section"><h2>👤 WHOIS</h2><pre>Registrar : Safenames Ltd
+Created   : 1997-02-24
+Expires   : 2028-02-25</pre></div>
+            <div class="section"><h2>🔒 SSL Certificate</h2><pre>{'subject': ((('commonName', '*.sachtler.com'),),), 'issuer': ((('countryName', 'US'),), (('organizationName', 'Amazon'),), (('commonName', 'Amazon RSA 2048 M01'),)), 'version': 3, 'serialNumber': '03DCA4B814E06B07F50072D85D5B24A1', 'notBefore': 'Apr 29 00:00:00 2026 GMT', 'notAfter': 'Nov 12 23:59:59 2026 GMT', 'subjectAltName': (('DNS', '*.sachtler.com'),), 'OCSP': ('http://ocsp.r2m01.amazontrust.com',), 'caIssuers': ('http://crt.r2m01.amazontrust.com/r2m01.cer',), 'crlDistributionPoints': ('http://crl.r2m01.amazontrust.com/r2m01.crl',)}</pre></div>
+            <div class="section"><h2>🛠️ Technology Stack</h2><pre>None detected</pre></div>
+            <div class="section"><h2>🧠 Smart Detective</h2><pre>☁️ Cloud Provider: Amazon Web Services (AWS) - Confirmed</pre></div>
+            <div class="section"><h2>🔐 Security Headers</h2><pre>✅ Strict-Transport-Security: Present
+❌ Content-Security-Policy: Missing (HIGH priority)
+❌ X-Frame-Options: Missing
+❌ X-Content-Type-Options: Missing
+❌ Referrer-Policy: Missing</pre></div>
+            <div class="section"><h2>🚀 CloudGuard WAF Summary</h2><pre style="background:#f0f9ff;color:#1e40af;">• CNAME records included
+• CloudGuard WAF auto-detected if i2.checkpoint.com present
+• CDN, Load Balancer & WAF fingerprinted
+• Ready for CloudGuard deployment</pre></div>
+        </div>
+    </body>
+    </html>

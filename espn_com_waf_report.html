@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>CloudGuard WAF Recon • espn.com</title>
+        <style>
+            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+            body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #f8fafc 0%, #e0f2fe 100%); margin:0; padding:40px 20px; }
+            .container { max-width:1100px; margin:0 auto; background:white; border-radius:16px; box-shadow:0 20px 25px -5px rgb(0 0 0 / 0.1); overflow:hidden; }
+            header { background:linear-gradient(90deg, #1e40af, #3b82f6); color:white; padding:40px; text-align:center; }
+            h1 { margin:0; font-size:2.5rem; }
+            .section { padding:35px 50px; border-bottom:1px solid #e2e8f0; }
+            h2 { color:#1e40af; margin:0 0 20px 0; }
+            pre { background:#0f172a; color:#e0f2fe; padding:22px; border-radius:12px; overflow-x:auto; line-height:1.6; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <header>
+                <h1>🌐 Website Detective</h1>
+                <p>CloudGuard WAF Reconnaissance Report</p>
+                <p><strong>https://espn.com</strong> — Scanned on April 29, 2026 at 14:35:56</p>
+            </header>
+            <div class="section"><h2>✅ Connection</h2><pre>Status Code     : 403
+Connected IP    : N/A
+Total Time      : 0.095 seconds
+</pre></div>
+            <div class="section"><h2>📡 Important Headers</h2><pre>Server: CloudFront
+Content-Type: text/html
+Via: 1.1 7b2c97c3ba7e37bdd32ec314e5554c74.cloudfront.net (CloudFront)
+X-Amz-Cf-Id: cuue23cfHwDzYv3fz6xjGxmScPW_IDnM8CtjYiDpvuylgzRtST9gqA==
+X-Amz-Cf-Pop: PHL51-P1</pre></div>
+            <div class="section"><h2>🌐 Full DNS Records</h2><pre>A:
+18.238.4.75
+     18.238.4.21
+     18.238.4.57
+     18.238.4.58
+
+MX:
+5 espn-com.mail.protection.outlook.com.
+
+NS:
+ns-1045.awsdns-02.org.
+     ns-122.awsdns-15.com.
+     ns-1936.awsdns-50.co.uk.
+     ns-846.awsdns-41.net.
+
+TXT:
+"D074-DF5F-73F8-42A6-65B8-DCED-DDCF-F835"
+     "MS=ms54940749"
+     "adobe-idp-site-verification=012b7d24aff9766444b9232173abb52ef026139e50aac77c49e02bd5d0dc3916"
+     "adobe-idp-site-verification=bb3da93fff816c4b9c75b5b87e7afbf88dff2c0dce3c5d8f6357552992c65903"
+     "anthropic-domain-verification-b9d3bd=Qtl0GSIZ03snhYQRvBAmLRBTu"
+     "asv=1cfe02e3a81e8e65022ac143e0107fdd"
+     "atlassian-domain-verification=5lqJwtfJPMHqC/aGvT/7s2BR53IHCs9P6vFjCQYA5nkQ4mvoHKTqNTW7gucscGW7"
+     "canva-site-verification=WmByBdRldeLifoeVTzfTgA"
+     "cisco-ci-domain-verification=48652156c723cc0989fbc1c14af4f05c20b2c7b50fa948e499ca824f79f41b69"
+     "ciscocidomainverification=2c2658d02e94ce88b29494db432d2c911fc43abd373e5e485b58562f8dd78c80"
+     "docusign=0f5ff8fc-4420-4d52-9877-33f1485d191f"
+     "docusign=e95b2d67-24b3-4e1e-9402-902d0b5e0c63"
+     "dropbox-domain-verification=f8opl8j5mr5e"
+     "extensis-domain-verification=17bb048b-06af-47a8-b8e5-d4a1155683c7"
+     "facebook-domain-verification=0y89pokpwmy3a9yqhuqx0wg8r23l9p"
+     "google-gws-recovery-domain-verification=41057864"
+     "google-site-verification=DM1CrNK7K2cq6YvNdmMPeIZBNQxxqw0a6ENutWnHoJQ"
+     "google-site-verification=d5RkNYJAq7RNqkZUNx-NjrdsUxYH77Qs7zl2ZqRj2Sc"
+     "pzhuVdOHPcxbY0BufDtyUHwrXoU8KikclnWWDgxOWNCyyCXtpK1Ws+A4mpps+Rtq0GARiBCA+IVLiCYcDhlSLw=="
+     "q1sjrk62qcsk7u2g2q8f46lhp"
+     "smartsheet-site-validation=vnu8x72WuY2SpP5LfwpJ3QEgKvaywdIx"
+     "v=spf1 include:servers.mcsv.net mx ip4:74.123.203.125 ip4:74.123.200.120 ip4:74.123.200.35 ip4:74.123.200.36 ip4:74.123.203.98 ip4:74.123.200.222 ip4:192.234.2.39 include:_spf.emailcampaigns.net include:userinclude.dme3ds1.com include:spf.disney.com ~all"
+
+SOA:
+ns-846.awsdns-41.net. awsdns-hostmaster.amazon.com. 1 7200 900 1209600 86400</pre></div>
+            <div class="section"><h2>🌍 IP Investigations</h2><pre>IP: 18.238.4.75
+Org: AS16509 Amazon.com, Inc.
+Location: Folcroft, Pennsylvania, US
+Hostname: server-18-238-4-75.phl51.r.cloudfront.net
+
+IP: 18.238.4.21
+Org: AS16509 Amazon.com, Inc.
+Location: Folcroft, Pennsylvania, US
+Hostname: server-18-238-4-21.phl51.r.cloudfront.net
+
+IP: 18.238.4.57
+Org: AS16509 Amazon.com, Inc.
+Location: Folcroft, Pennsylvania, US
+Hostname: server-18-238-4-57.phl51.r.cloudfront.net
+
+IP: 18.238.4.58
+Org: AS16509 Amazon.com, Inc.
+Location: Folcroft, Pennsylvania, US
+Hostname: server-18-238-4-58.phl51.r.cloudfront.net</pre></div>
+            <div class="section"><h2>🚦 Reverse Proxy & Cloud-Native Services</h2><pre>🚦 AWS CloudFront (Reverse Proxy / CDN)
+   Edge Pop: PHL51-P1</pre></div>
+            <div class="section"><h2>👤 WHOIS</h2><pre>Registrar : CSC Corporate Domains, Inc.
+Created   : 1994-10-04
+Expires   : 2026-10-03</pre></div>
+            <div class="section"><h2>🔒 SSL Certificate</h2><pre>{'subject': ((('countryName', 'US'),), (('stateOrProvinceName', 'California'),), (('organizationName', 'The Walt Disney Company'),), (('commonName', 'editions.espn.com'),)), 'issuer': ((('countryName', 'GB'),), (('organizationName', 'Sectigo Limited'),), (('commonName', 'Sectigo Public Server Authentication CA OV R36'),)), 'version': 3, 'serialNumber': '07390F4762AA71FDE5C8106A61450B79', 'notBefore': 'Nov 10 00:00:00 2025 GMT', 'notAfter': 'Nov 10 23:59:59 2026 GMT', 'subjectAltName': (('DNS', 'editions.espn.com'), ('DNS', '*.api.espn.cl'), ('DNS', '*.api.espn.co.cr'), ('DNS', '*.api.espn.co.uk'), ('DNS', '*.api.espn.com.ar'), ('DNS', '*.api.espn.com.au'), ('DNS', '*.api.espn.com.br'), ('DNS', '*.api.espn.com.co'), ('DNS', '*.api.espn.com.do'), ('DNS', '*.api.espn.com.ec'), ('DNS', '*.api.espn.com.gt'), ('DNS', '*.api.espn.com.mx'), ('DNS', '*.api.espn.com.pa'), ('DNS', '*.api.espn.com.pe'), ('DNS', '*.api.espn.com.sg'), ('DNS', '*.api.espn.com.uy'), ('DNS', '*.api.espn.com.ve'), ('DNS', '*.api.espn.es'), ('DNS', '*.api.espn.in'), ('DNS', '*.api.espn.nl'), ('DNS', '*.espn.cl'), ('DNS', '*.espn.co.cr'), ('DNS', '*.espn.co.uk'), ('DNS', '*.espn.com'), ('DNS', '*.espn.com.ar'), ('DNS', '*.espn.com.au'), ('DNS', '*.espn.com.br'), ('DNS', '*.espn.com.co'), ('DNS', '*.espn.com.do'), ('DNS', '*.espn.com.ec'), ('DNS', '*.espn.com.gt'), ('DNS', '*.espn.com.mx'), ('DNS', '*.espn.com.pa'), ('DNS', '*.espn.com.pe'), ('DNS', '*.espn.com.sg'), ('DNS', '*.espn.com.uy'), ('DNS', '*.espn.com.ve'), ('DNS', '*.espn.es'), ('DNS', '*.espn.go.com'), ('DNS', '*.espn.in'), ('DNS', '*.espn.nl'), ('DNS', '*.espn.ph'), ('DNS', '*.espndeportes.com'), ('DNS', '*.fan.api.espn.co.cr'), ('DNS', '*.fan.api.espn.com.do'), ('DNS', '*.fan.api.espn.com.ec'), ('DNS', '*.fan.api.espn.com.gt'), ('DNS', '*.fan.api.espn.com.pa'), ('DNS', '*.fan.api.espn.com.pe'), ('DNS', '*.fan.api.espn.com.sg'), ('DNS', '*.fan.api.espn.com.uy'), ('DNS', '*.fan.api.espn.com.ve'), ('DNS', '*.fan.api.espn.es'), ('DNS', '*.fan.api.espn.nl'), ('DNS', '*.fan.api.espn.ph'), ('DNS', 'espn.cl'), ('DNS', 'espn.co.cr'), ('DNS', 'espn.co.uk'), ('DNS', 'espn.com'), ('DNS', 'espn.com.ar'), ('DNS', 'espn.com.au'), ('DNS', 'espn.com.br'), ('DNS', 'espn.com.co'), ('DNS', 'espn.com.do'), ('DNS', 'espn.com.ec'), ('DNS', 'espn.com.gt'), ('DNS', 'espn.com.mx'), ('DNS', 'espn.com.pa'), ('DNS', 'espn.com.pe'), ('DNS', 'espn.com.sg'), ('DNS', 'espn.com.uy'), ('DNS', 'espn.com.ve'), ('DNS', 'espn.es'), ('DNS', 'espn.go.com'), ('DNS', 'espn.in'), ('DNS', 'espn.nl'), ('DNS', 'espn.ph'), ('DNS', 'espndeportes.com'), ('DNS', 'fan.core.api.espn.cl'), ('DNS', 'fan.core.api.espn.co.cr'), ('DNS', 'fan.core.api.espn.co.uk'), ('DNS', 'fan.core.api.espn.com.ar'), ('DNS', 'fan.core.api.espn.com.au'), ('DNS', 'fan.core.api.espn.com.br'), ('DNS', 'fan.core.api.espn.com.co'), ('DNS', 'fan.core.api.espn.com.do'), ('DNS', 'fan.core.api.espn.com.ec'), ('DNS', 'fan.core.api.espn.com.gt'), ('DNS', 'fan.core.api.espn.com.mx'), ('DNS', 'fan.core.api.espn.com.pa'), ('DNS', 'fan.core.api.espn.com.pe'), ('DNS', 'fan.core.api.espn.com.sg'), ('DNS', 'fan.core.api.espn.com.uy'), ('DNS', 'fan.core.api.espn.com.ve'), ('DNS', 'fan.core.api.espn.es'), ('DNS', 'fan.core.api.espn.in'), ('DNS', 'fan.core.api.espn.nl'), ('DNS', 'fan.core.api.espn.ph')), 'OCSP': ('http://ocsp.sectigo.com',), 'caIssuers': ('http://crt.sectigo.com/SectigoPublicServerAuthenticationCAOVR36.crt',), 'crlDistributionPoints': ('http://crl.sectigo.com/SectigoPublicServerAuthenticationCAOVR36.crl',)}</pre></div>
+            <div class="section"><h2>🛠️ Technology Stack</h2><pre>Advertising-networks: DoubleClick for Publishers (DFP), Rubicon Project
+Javascript-frameworks: Prototype, RequireJS
+Web-frameworks: Twitter Bootstrap</pre></div>
+            <div class="section"><h2>🧠 Smart Detective</h2><pre>☁️ Cloud Provider: Amazon Web Services (AWS)
+🤖 AI Service: Anthropic (Claude)
+📧 Email: Microsoft 365
+📄 Service: DocuSign
+🏢 Service: Cisco (Webex / Duo)</pre></div>
+            <div class="section"><h2>🔐 Security Headers</h2><pre>✅ Strict-Transport-Security: Present
+❌ Content-Security-Policy: Missing (HIGH priority)
+❌ X-Frame-Options: Missing
+❌ X-Content-Type-Options: Missing
+❌ Referrer-Policy: Missing</pre></div>
+            <div class="section"><h2>🚀 CloudGuard WAF Summary</h2><pre style="background:#f0f9ff;color:#1e40af;">• Reverse Proxy / CDN detected
+• Performance metrics collected
+• All A records + IPs investigated
+• CAA records checked
+• AI services detected</pre></div>
+        </div>
+    </body>
+    </html>

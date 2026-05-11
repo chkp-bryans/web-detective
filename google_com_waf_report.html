@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>CloudGuard WAF Recon • google.com</title>
+        <style>
+            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+            body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #f8fafc 0%, #e0f2fe 100%); margin:0; padding:40px 20px; }
+            .container { max-width:1100px; margin:0 auto; background:white; border-radius:16px; box-shadow:0 20px 25px -5px rgb(0 0 0 / 0.1); overflow:hidden; }
+            header { background:linear-gradient(90deg, #1e40af, #3b82f6); color:white; padding:40px; text-align:center; }
+            h1 { margin:0; font-size:2.5rem; }
+            .section { padding:35px 50px; border-bottom:1px solid #e2e8f0; }
+            h2 { color:#1e40af; margin:0 0 20px 0; }
+            pre { background:#0f172a; color:#e0f2fe; padding:22px; border-radius:12px; overflow-x:auto; line-height:1.6; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <header>
+                <h1>🌐 Website Detective</h1>
+                <p>CloudGuard WAF Reconnaissance Report</p>
+                <p><strong>https://google.com</strong> — Scanned on May 08, 2026 at 17:28:38</p>
+            </header>
+            <div class="section"><h2>✅ Connection</h2><pre>Status Code : 200
+Total Time : 0.121 seconds</pre></div>
+            <div class="section"><h2>📡 Important Headers</h2><pre>Server: gws
+Content-Type: text/html; charset=ISO-8859-1</pre></div>
+            <div class="section"><h2>🌐 Full DNS Records (incl. CNAME)</h2><pre>A:
+142.250.191.14
+
+CNAME: No records
+
+MX:
+10 smtp.google.com.
+
+NS:
+ns1.google.com.
+     ns2.google.com.
+     ns3.google.com.
+     ns4.google.com.
+
+TXT:
+"onetrust-domain-verification=0d477fe608074e6f9c12bca7826035cc"
+     "onetrust-domain-verification=6d685f1d41a94696ad7ef771f68993e0"
+     "apple-domain-verification=30afIBcvSuDV2PLX"
+     "docusign=1b0a6754-49b1-4db5-8540-d2c12664b289"
+     "google-site-verification=4ibFUgB-wXLQ_S7vsXVomSTVamuOXBiVAzpR5IZ87D0"
+     "google-site-verification=TV9-DBe4R80X4v0M4U_bd_J9cpOJM0nikft0jAgjmsQ"
+     "docusign=05958488-4752-4ef2-95eb-aa7ba8a3bd0e"
+     "facebook-domain-verification=22rm551cu4k0ab0bxsw536tlds4h95"
+     "cisco-ci-domain-verification=47c38bc8c4b74b7233e9053220c1bbe76bcc1cd33c7acf7acd36cd6a5332004b"
+     "MS=E4A68B9AB2BB9670BCE15412F62916164C0B20BB"
+     "v=spf1 include:_spf.google.com ~all"
+     "globalsign-smime-dv=CDYX+XFHUw2wml6/Gb8+59BsH31KzUr6c1l2BPvqKX8="
+     "google-site-verification=wD8N7i1JTNTkezJ49swvWW48f8_9xveREV4oB-0Hf5o"
+
+SOA:
+ns1.google.com. dns-admin.google.com. 912053511 900 900 1800 60
+
+CAA:
+0 issue "pki.goog"</pre></div>
+            <div class="section"><h2>🌍 IP Investigations</h2><pre>IP: 142.250.191.14
+      Org      : AS15169 Google LLC
+      Location : New York City, New York, US
+      Hostname : pnlgaa-az-in-f14.1e100.net</pre></div>
+            <div class="section"><h2>🌐 CDN Detection</h2><pre>No specific CDN detected</pre></div>
+            <div class="section"><h2>🚦 Load Balancer / Proxy</h2><pre>No specific load balancer detected</pre></div>
+            <div class="section"><h2>🛡️ WAF Detection</h2><pre>No WAF detected</pre></div>
+            <div class="section"><h2>🔗 Third-Party Connections</h2><pre>No third-party connections</pre></div>
+            <div class="section"><h2>👤 WHOIS</h2><pre>Registrar : MarkMonitor, Inc.
+Created   : 1997-09-15
+Expires   : 2028-09-14</pre></div>
+            <div class="section"><h2>🔒 SSL Certificate</h2><pre>{'subject': ((('commonName', '*.google.com'),),), 'issuer': ((('countryName', 'US'),), (('organizationName', 'Google Trust Services'),), (('commonName', 'WR2'),)), 'version': 3, 'serialNumber': 'F22ECD1F04FE57FE0AB3CC888A455DFD', 'notBefore': 'Apr 20 08:35:05 2026 GMT', 'notAfter': 'Jul 13 08:35:04 2026 GMT', 'subjectAltName': (('DNS', '*.google.com'), ('DNS', '*.appengine.google.com'), ('DNS', '*.bdn.dev'), ('DNS', '*.origin-test.bdn.dev'), ('DNS', '*.cloud.google.com'), ('DNS', '*.crowdsource.google.com'), ('DNS', '*.datacompute.google.com'), ('DNS', '*.google.ca'), ('DNS', '*.google.cl'), ('DNS', '*.google.co.in'), ('DNS', '*.google.co.jp'), ('DNS', '*.google.co.uk'), ('DNS', '*.google.com.ar'), ('DNS', '*.google.com.au'), ('DNS', '*.google.com.br'), ('DNS', '*.google.com.co'), ('DNS', '*.google.com.mx'), ('DNS', '*.google.com.tr'), ('DNS', '*.google.com.vn'), ('DNS', '*.google.de'), ('DNS', '*.google.es'), ('DNS', '*.google.fr'), ('DNS', '*.google.hu'), ('DNS', '*.google.it'), ('DNS', '*.google.nl'), ('DNS', '*.google.pl'), ('DNS', '*.google.pt'), ('DNS', '*.googleapis.cn'), ('DNS', '*.gstatic.cn'), ('DNS', '*.gstatic-cn.com'), ('DNS', 'googlecnapps.cn'), ('DNS', '*.googlecnapps.cn'), ('DNS', 'googleapps-cn.com'), ('DNS', '*.googleapps-cn.com'), ('DNS', 'gkecnapps.cn'), ('DNS', '*.gkecnapps.cn'), ('DNS', 'googledownloads.cn'), ('DNS', '*.googledownloads.cn'), ('DNS', 'recaptcha.net.cn'), ('DNS', '*.recaptcha.net.cn'), ('DNS', 'recaptcha-cn.net'), ('DNS', '*.recaptcha-cn.net'), ('DNS', 'widevine.cn'), ('DNS', '*.widevine.cn'), ('DNS', 'ampproject.org.cn'), ('DNS', '*.ampproject.org.cn'), ('DNS', 'ampproject.net.cn'), ('DNS', '*.ampproject.net.cn'), ('DNS', 'google-analytics-cn.com'), ('DNS', '*.google-analytics-cn.com'), ('DNS', 'googleadservices-cn.com'), ('DNS', '*.googleadservices-cn.com'), ('DNS', 'googlevads-cn.com'), ('DNS', '*.googlevads-cn.com'), ('DNS', 'googleapis-cn.com'), ('DNS', '*.googleapis-cn.com'), ('DNS', 'googleoptimize-cn.com'), ('DNS', '*.googleoptimize-cn.com'), ('DNS', 'doubleclick-cn.net'), ('DNS', '*.doubleclick-cn.net'), ('DNS', '*.fls.doubleclick-cn.net'), ('DNS', '*.g.doubleclick-cn.net'), ('DNS', 'doubleclick.cn'), ('DNS', '*.doubleclick.cn'), ('DNS', '*.fls.doubleclick.cn'), ('DNS', '*.g.doubleclick.cn'), ('DNS', 'dartsearch-cn.net'), ('DNS', '*.dartsearch-cn.net'), ('DNS', 'googletraveladservices-cn.com'), ('DNS', '*.googletraveladservices-cn.com'), ('DNS', 'googletagservices-cn.com'), ('DNS', '*.googletagservices-cn.com'), ('DNS', 'googletagmanager-cn.com'), ('DNS', '*.googletagmanager-cn.com'), ('DNS', 'googlesyndication-cn.com'), ('DNS', '*.googlesyndication-cn.com'), ('DNS', '*.safeframe.googlesyndication-cn.com'), ('DNS', 'app-measurement-cn.com'), ('DNS', '*.app-measurement-cn.com'), ('DNS', 'gvt1-cn.com'), ('DNS', '*.gvt1-cn.com'), ('DNS', 'gvt2-cn.com'), ('DNS', '*.gvt2-cn.com'), ('DNS', '2mdn-cn.net'), ('DNS', '*.2mdn-cn.net'), ('DNS', 'googleflights-cn.net'), ('DNS', '*.googleflights-cn.net'), ('DNS', 'admob-cn.com'), ('DNS', '*.admob-cn.com'), ('DNS', '*.gemini.cloud.google.com'), ('DNS', 'googlesandbox-cn.com'), ('DNS', '*.googlesandbox-cn.com'), ('DNS', '*.safenup.googlesandbox-cn.com'), ('DNS', '*.gstatic.com'), ('DNS', '*.metric.gstatic.com'), ('DNS', '*.gvt1.com'), ('DNS', '*.gcpcdn.gvt1.com'), ('DNS', '*.gvt2.com'), ('DNS', '*.gcp.gvt2.com'), ('DNS', '*.url.google.com'), ('DNS', '*.youtube-nocookie.com'), ('DNS', '*.ytimg.com'), ('DNS', 'ai.android'), ('DNS', 'android.com'), ('DNS', '*.android.com'), ('DNS', '*.flash.android.com'), ('DNS', 'g.cn'), ('DNS', '*.g.cn'), ('DNS', 'g.co'), ('DNS', '*.g.co'), ('DNS', 'goo.gl'), ('DNS', 'www.goo.gl'), ('DNS', 'google-analytics.com'), ('DNS', '*.google-analytics.com'), ('DNS', 'google.com'), ('DNS', 'googlecommerce.com'), ('DNS', '*.googlecommerce.com'), ('DNS', 'ggpht.cn'), ('DNS', '*.ggpht.cn'), ('DNS', 'urchin.com'), ('DNS', '*.urchin.com'), ('DNS', 'youtu.be'), ('DNS', 'youtube.com'), ('DNS', '*.youtube.com'), ('DNS', 'music.youtube.com'), ('DNS', '*.music.youtube.com'), ('DNS', 'youtubeeducation.com'), ('DNS', '*.youtubeeducation.com'), ('DNS', 'youtubekids.com'), ('DNS', '*.youtubekids.com'), ('DNS', 'yt.be'), ('DNS', '*.yt.be'), ('DNS', 'android.clients.google.com'), ('DNS', '*.android.google.cn'), ('DNS', '*.chrome.google.cn'), ('DNS', '*.developers.google.cn'), ('DNS', '*.aistudio.google.com')), 'OCSP': ('http://o.pki.goog/wr2',), 'caIssuers': ('http://i.pki.goog/wr2.crt',), 'crlDistributionPoints': ('http://c.pki.goog/wr2/oBFYYahzgVI.crl',)}</pre></div>
+            <div class="section"><h2>🛠️ Technology Stack</h2><pre>Web-servers: Google Web Server</pre></div>
+            <div class="section"><h2>🧠 Smart Detective</h2><pre>📧 Email: Microsoft 365
+📄 Service: DocuSign</pre></div>
+            <div class="section"><h2>🔐 Security Headers</h2><pre>✅ Strict-Transport-Security: Present
+❌ Content-Security-Policy: Missing (HIGH priority)
+❌ X-Frame-Options: Missing
+❌ X-Content-Type-Options: Missing
+❌ Referrer-Policy: Missing</pre></div>
+            <div class="section"><h2>🚀 CloudGuard WAF Summary</h2><pre style="background:#f0f9ff;color:#1e40af;">• CNAME records included
+• CloudGuard WAF auto-detected if i2.checkpoint.com present
+• CDN, Load Balancer & WAF fingerprinted
+• Ready for CloudGuard deployment</pre></div>
+        </div>
+    </body>
+    </html>

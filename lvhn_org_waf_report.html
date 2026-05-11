@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>CloudGuard WAF Recon • lvhn.org</title>
+        <style>
+            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+            body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #f8fafc 0%, #e0f2fe 100%); margin:0; padding:40px 20px; }
+            .container { max-width:1100px; margin:0 auto; background:white; border-radius:16px; box-shadow:0 20px 25px -5px rgb(0 0 0 / 0.1); overflow:hidden; }
+            header { background:linear-gradient(90deg, #1e40af, #3b82f6); color:white; padding:40px; text-align:center; }
+            h1 { margin:0; font-size:2.5rem; }
+            .section { padding:35px 50px; border-bottom:1px solid #e2e8f0; }
+            h2 { color:#1e40af; margin:0 0 20px 0; }
+            pre { background:#0f172a; color:#e0f2fe; padding:22px; border-radius:12px; overflow-x:auto; line-height:1.6; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <header>
+                <h1>🌐 Website Detective</h1>
+                <p>CloudGuard WAF Reconnaissance Report</p>
+                <p><strong>https://lvhn.org</strong> — Scanned on April 29, 2026 at 13:21:34</p>
+            </header>
+            <div class="section"><h2>✅ Connection</h2><p style="font-size:1.4rem;"><strong>200 (OK)</strong></p></div>
+            <div class="section"><h2>📡 Important Headers</h2><pre>Server: nginx
+Content-Type: text/html; charset=UTF-8
+Strict-Transport-Security: max-age=300
+Via: 1.1 varnish, 1.1 varnish, 1.1 varnish, 1.1 varnish</pre></div>
+            <div class="section"><h2>🌐 Full DNS Records</h2><pre>A:
+23.185.0.1
+
+MX:
+0 mail.jefferson.edu.
+
+NS:
+ns4.p201.dns.oraclecloud.net.
+     ns2.p201.dns.oraclecloud.net.
+     ns1.p201.dns.oraclecloud.net.
+     ns3.p201.dns.oraclecloud.net.
+
+TXT:
+"p1bczrk7h3dxl5d5lj1wghgcl99t3gz0"
+     "google-gws-recovery-domain-verification=59454898"
+     "MS=ms94877309"
+     "_57jw65s18rjroz975g2dy30dmaclw8l"
+     "MS=ms22474571"
+     "v=spf1 exists:%{i}._i.%{d}._d.espf.agari-dns.net include:%{d}.30.spf-protect.agari-dns.net -all"
+     "_92m925ww4kdugb0i3ny30b4lgq5v7c4"
+     "apple-domain-verification=jKa_p1JY3LXtyAuHH3hq7_yuK-n6E9oTd0C_jVelPDk"
+     "google-site-verification=eve1ExXE9S0nN_Isux69k7EJJ9XS-N2OW0xklpXLAhc"
+     "cryqz6wtyqnmw6356kft04z2hl25q1rs"
+     "m16zrsgqt9d7w6j4g107jd7hbzp18861"
+     "google-site-verification=Mvohll3dCiMiVrd7qROP6-5qyKwgqL076BCsTsGzhkw"
+     "ciscocidomainverification=73002a990b55fee21e4645060b3d2df91ebda8d049aa964346683f53b35c7b16"
+     "atlassian-domain-verification=MgqupOc6I0GnF/DeZlER/pJNEQRAgdPV8Jup9JyvjttB1gn4zlBr3aJwqPzDM5wQ"
+     "pexip-ms-tenant-domain-verification=9e7491ff-9fe6-459e-ad5b-755597ec307c"
+     "hfbx1fbw5crt4rymjzhxxx058f8jkqdg"
+     "apple-domain-verification=ub169K3kLH70TADN"
+     "google-site-verification=UOmrZxTHXYOwE1WTHgbyJdIILlDVqvMsZcF4hSrgsO8"
+     "facebook-domain-verification=v3qq440yqhcpuhx6jzzs9b32adn7tn"
+     "google-site-verification=ELUN36ZpRN8py_xCsjr8vEguOsmXUuBUFUdpc9MuML0"
+     "Fastly-190744-210221-466600"
+     "4csBiWQCqsWr9kQ9FVqOCpbKcfTlydrymRr+yyRCcTP+StVFKvfQtfZTXLmEtg/CY5l/WzqC65A45SRjuyp3rA=="
+     "_nb46616cttpfeyd83k0a8bm299g47o1"
+     "3669b1192149c82dd1fef39961b029c94d2973d1ab9cef2a781b0496a401091f"
+
+SOA:
+ns1.p201.dns.oraclecloud.net. hostmaster.lvhn.org. 59 3600 600 604800 1800</pre></div>
+            <div class="section"><h2>🌍 IP Investigations</h2><pre>IP: 23.185.0.1
+Org: AS54113 Fastly, Inc.
+Location: San Francisco, California, US
+Hostname: None</pre></div>
+            <div class="section"><h2>👤 WHOIS</h2><pre>Registrar : Network Solutions, LLC
+Created   : 2009-07-29
+Expires   : 2026-07-29</pre></div>
+            <div class="section"><h2>🔒 SSL Certificate</h2><pre>{'subject': ((('commonName', 'allentownasthma.com'),),), 'issuer': ((('countryName', 'US'),), (('organizationName', "Let's Encrypt"),), (('commonName', 'R13'),)), 'version': 3, 'serialNumber': '053DABB8CA25A43C66A068811C0EA15BD11D', 'notBefore': 'Apr 28 14:09:07 2026 GMT', 'notAfter': 'Jul 27 14:09:06 2026 GMT', 'subjectAltName': (('DNS', 'allentownasthma.com'), ('DNS', 'aptsems.com'), ('DNS', 'coordinatedhealth.com'), ('DNS', 'deltamedix.com'), ('DNS', 'easternpagiandliver.com'), ('DNS', 'give.lvhn.org'), ('DNS', 'lvhn.org'), ('DNS', 'news.lvhn.org'), ('DNS', 'poconohealthsystem.org'), ('DNS', 'reviews.allentownasthma.com'), ('DNS', 'scrantonortho.com'), ('DNS', 'www.allentownasthma.com'), ('DNS', 'www.aptsems.com'), ('DNS', 'www.coordinatedhealth.com'), ('DNS', 'www.deltamedix.com'), ('DNS', 'www.easternpagiandliver.com'), ('DNS', 'www.lvhn.org'), ('DNS', 'www.poconohealthsystem.org'), ('DNS', 'www.scrantonortho.com')), 'caIssuers': ('http://r13.i.lencr.org/',), 'crlDistributionPoints': ('http://r13.c.lencr.org/30.crl',)}</pre></div>
+            <div class="section"><h2>🛠️ Technology Stack</h2><pre>Cms: Drupal
+Javascript-frameworks: Lightbox, Moment.js, Select2, jQuery
+Mobile-frameworks: jQuery Mobile
+Photo-galleries: Lightbox
+Programming-languages: PHP
+Web-servers: Nginx</pre></div>
+            <div class="section"><h2>🧠 Smart Detective</h2><pre>☁️ Cloud Provider: Oracle Cloud Infrastructure (OCI)
+📧 Email: Microsoft 365
+📧 Email / Verification: Google Workspace
+🏢 Service: Cisco (Webex / Duo / Umbrella)
+🍎 Service: Apple Business / iCloud</pre></div>
+            <div class="section"><h2>🔐 Security Headers</h2><pre>✅ Strict-Transport-Security: Present
+❌ Content-Security-Policy: Missing (HIGH priority)
+❌ X-Frame-Options: Missing
+❌ X-Content-Type-Options: Missing
+❌ Referrer-Policy: Missing</pre></div>
+            <div class="section"><h2>🚀 CloudGuard WAF Summary</h2><pre style="background:#f0f9ff;color:#1e40af;">• Backend: Kestrel (.NET)
+• All A records investigated
+• Cloud / Services detected
+• Missing key security headers → CloudGuard can enforce them</pre></div>
+        </div>
+    </body>
+    </html>

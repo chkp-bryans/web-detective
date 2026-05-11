@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>CloudGuard WAF Recon • my.lvhn.org</title>
+        <style>
+            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+            body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #f8fafc 0%, #e0f2fe 100%); margin:0; padding:40px 20px; }
+            .container { max-width:1100px; margin:0 auto; background:white; border-radius:16px; box-shadow:0 20px 25px -5px rgb(0 0 0 / 0.1); overflow:hidden; }
+            header { background:linear-gradient(90deg, #1e40af, #3b82f6); color:white; padding:40px; text-align:center; }
+            h1 { margin:0; font-size:2.5rem; }
+            .section { padding:35px 50px; border-bottom:1px solid #e2e8f0; }
+            h2 { color:#1e40af; margin:0 0 20px 0; }
+            pre { background:#0f172a; color:#e0f2fe; padding:22px; border-radius:12px; overflow-x:auto; line-height:1.6; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <header>
+                <h1>🌐 Website Detective</h1>
+                <p>CloudGuard WAF Reconnaissance Report</p>
+                <p><strong>https://my.lvhn.org/MyChart/Authentication/Login?postloginurl=Scheduling%3flinksource%3dlvhn-org</strong> — Scanned on April 29, 2026 at 13:15:31</p>
+            </header>
+            <div class="section"><h2>✅ Connection</h2><p style="font-size:1.4rem;"><strong>200 (OK)</strong></p></div>
+            <div class="section"><h2>📡 Important Headers</h2><pre>Content-Type: text/html; charset=utf-8
+Strict-Transport-Security: max-age=31536000</pre></div>
+            <div class="section"><h2>🌐 Full DNS Records</h2><pre>A:
+192.234.106.232</pre></div>
+            <div class="section"><h2>👤 WHOIS</h2><pre>Registrar : Network Solutions, LLC
+Created   : 2009-07-29
+Expires   : 2026-07-29</pre></div>
+            <div class="section"><h2>🔒 SSL Certificate</h2><pre>{'subject': ((('countryName', 'US'),), (('stateOrProvinceName', 'Pennsylvania'),), (('localityName', 'Allentown'),), (('organizationName', 'Lehigh Valley Health Network'),), (('commonName', '*.mylvhn.org'),)), 'issuer': ((('countryName', 'US'),), (('organizationName', 'DigiCert Inc'),), (('commonName', 'DigiCert Global G2 TLS RSA SHA256 2020 CA1'),)), 'version': 3, 'serialNumber': '04E91911AAC35C5E8FB111CB01698541', 'notBefore': 'Feb 23 00:00:00 2026 GMT', 'notAfter': 'Mar 25 23:59:59 2027 GMT', 'subjectAltName': (('DNS', '*.mylvhn.org'), ('DNS', '*.lvhn.org'), ('DNS', '*.lvh.com'), ('DNS', 'mylvhn.org')), 'OCSP': ('http://ocsp.digicert.com',), 'caIssuers': ('http://cacerts.digicert.com/DigiCertGlobalG2TLSRSASHA2562020CA1-1.crt',), 'crlDistributionPoints': ('http://crl3.digicert.com/DigiCertGlobalG2TLSRSASHA2562020CA1-1.crl', 'http://crl4.digicert.com/DigiCertGlobalG2TLSRSASHA2562020CA1-1.crl')}</pre></div>
+            <div class="section"><h2>🛠️ Technology Stack</h2><pre>Operating-systems: Windows Server
+Web-servers: IIS</pre></div>
+            <div class="section"><h2>🧠 Smart Detective</h2><pre>☁️ Cloud Provider: Google Cloud / Front-End</pre></div>
+            <div class="section"><h2>🔐 Security Headers</h2><pre>✅ Strict-Transport-Security: Present
+❌ Content-Security-Policy: Missing (HIGH priority)
+❌ X-Frame-Options: Missing
+❌ X-Content-Type-Options: Missing
+❌ Referrer-Policy: Missing</pre></div>
+            <div class="section"><h2>🚀 CloudGuard WAF Summary</h2><pre style="background:#f0f9ff;color:#1e40af;">• Backend: Kestrel (.NET)
+• Cloud / CDN: AWS + Google Front-End + others detected
+• Services: Proofpoint, Microsoft 365, Cisco, DocuSign, Webex, Apple, Autodesk, etc.
+• Existing protections detected → tune CloudGuard bypass rules
+• Missing key security headers → CloudGuard can auto-enforce them</pre></div>
+        </div>
+    </body>
+    </html>
