@@ -1,0 +1,6 @@
+# Ignore generated HTML reports
+*.html
+# Ignore other common junk
+__pycache__/
+*.pyc
+.env
