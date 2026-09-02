@@ -1,11 +1,15 @@
-# Ignore generated HTML reports
-*.html
-# Ignore other common junk
+# Virtualenvs
+venv/
+.venv/
+
+# Generated HTML reports (keep templates/)
+*_waf_report.html
+reports/
+!templates/
+
+# Python junk
 __pycache__/
 *.pyc
+*.pyo
 .env
-*.report.html
-*.report.html
-*.report.html
-*.report.html
-reports/
+.DS_Store

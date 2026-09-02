@@ -1,0 +1,12 @@
+.git
+.gitignore
+venv
+.venv
+__pycache__
+*.pyc
+reports
+*_waf_report.html
+README.md
+.dockerignore
+.env
+*.md
