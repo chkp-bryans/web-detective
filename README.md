@@ -12,10 +12,12 @@ Live instance (private, basic auth): `https://detective.csadocs.com`
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
+export BASIC_AUTH_USER=detective
+export BASIC_AUTH_PASSWORD=changeme
 gunicorn --bind 0.0.0.0:8000 --timeout 120 app:app
 ```
 
-Open http://127.0.0.1:8000
+Open http://127.0.0.1:8000 (browser will prompt for login). For local-only with no prompt, set `DETECTIVE_ALLOW_UNAUTHENTICATED=1`.
 
 CLI (same scanner):
 
@@ -27,7 +29,10 @@ python website_detective.py
 
 ```bash
 docker build -t web-detective .
-docker run --rm -p 8000:8000 web-detective
+docker run --rm -p 8000:8000 \
+  -e BASIC_AUTH_USER=detective \
+  -e BASIC_AUTH_PASSWORD=changeme \
+  web-detective
 ```
 
 ## Dokploy (Azure)
@@ -36,9 +41,19 @@ docker run --rm -p 8000:8000 web-detective
 2. Create an **Application** from this GitHub repo, branch `main`
 3. Build type: **Dockerfile** (`./Dockerfile`)
 4. Container port: **8000**
-5. Domain: `detective.csadocs.com` with HTTPS / Let’s Encrypt
-6. Enable Traefik **basic auth** in the Dokploy UI (do not put passwords in git)
-7. Deploy. Auto-deploy on push to `main` if the GitHub provider is connected.
+5. Domain: `detective.csadocs.com`, HTTPS on, certificate **Let's Encrypt** (not “none”). If the browser still shows a Traefik default cert, delete/re-add the domain after DNS is live, or restart Traefik in Dokploy settings.
+6. **Environment** (required — Traefik UI auth is easy to miss; the app enforces this):
+
+   ```
+   BASIC_AUTH_USER=detective
+   BASIC_AUTH_PASSWORD=<strong password>
+   ```
+
+   Do not commit the password. Redeploy after saving env vars.
+7. Optional extra layer: Application **Advanced → Security** (Dokploy Traefik basic auth).
+8. Deploy. Auto-deploy on push to `main` if the GitHub provider is connected.
+
+Without `BASIC_AUTH_USER` / `BASIC_AUTH_PASSWORD` the scanner returns **503** (locked). `/health` stays open for Dokploy.
 
 Health check: `GET /health` → `{"status":"ok"}`.
 
