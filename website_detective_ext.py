@@ -38,7 +38,7 @@ REPORT_SECTIONS = [
     ("Technology stack", "tech"),
     ("Smart detective", "smart"),
     ("Security headers", "security"),
-    ("CloudGuard WAF summary", "summary"),
+    ("Check Point WAF summary", "summary"),
 ]
 
 
@@ -313,7 +313,7 @@ def to_markdown(report: dict, meta=None) -> str:
         f"- **Scanned:** {report.get('scanned_at') or 'N/A'}",
         f"- **URL:** {report.get('url') or ''}",
         f"- **Release:** {report.get('release') or APP_RELEASE}",
-        f"- **CloudGuard:** {cloudguard}",
+        f"- **Check Point WAF:** {cloudguard}",
         f"- **TTFB:** {ttfb_line}",
     ]
     meta = meta or {}
@@ -349,12 +349,24 @@ def _security_flags(security_text: str) -> dict:
     return flags
 
 
+def _checkpoint_waf_copy(text):
+    if not isinstance(text, str) or "CloudGuard" not in text:
+        return text
+    text = text.replace("Check Point CloudGuard WAF", "Check Point WAF")
+    text = text.replace("CloudGuard WAF", "Check Point WAF")
+    text = text.replace("Check Point CloudGuard CNAME", "Check Point WAF CNAME")
+    return text
+
+
 def enhance(report: dict) -> dict:
     """Add markdown/timing/expiry onto a core scan result. Never raises."""
     if not isinstance(report, dict):
         return report
     report.setdefault("release", APP_RELEASE)
     try:
+        for key in ("waf", "summary", "smart"):
+            if report.get(key):
+                report[key] = _checkpoint_waf_copy(report[key])
         expiring, expires_on = parse_ssl_expiry(ssl_text=report.get("ssl") or "")
         report["ssl_expiring"] = expiring
         report["ssl_expires_on"] = expires_on
