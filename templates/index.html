@@ -32,14 +32,15 @@
         header p { margin: 0; opacity: 0.95; }
         .form-wrap { padding: 28px 40px; border-bottom: 1px solid #e2e8f0; }
         form { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
-        input[type="text"] {
+        input[type="text"], textarea.meta {
             flex: 1 1 320px;
             padding: 12px 16px;
             font-size: 16px;
             border: 1px solid #cbd5e1;
             border-radius: 8px;
+            font-family: inherit;
         }
-        button {
+        button, .btn-link {
             padding: 12px 24px;
             background: #1e40af;
             color: white;
@@ -48,8 +49,12 @@
             cursor: pointer;
             font-size: 16px;
             font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
         }
-        button:hover { background: #1d4ed8; }
+        button:hover, .btn-link:hover { background: #1d4ed8; }
         .hint { text-align: center; color: #64748b; font-size: 14px; margin: 12px 0 0; }
         .section { padding: 28px 40px; border-bottom: 1px solid #e2e8f0; }
         .section h2 { color: #1e40af; margin: 0 0 16px 0; font-size: 1.15rem; }
@@ -77,13 +82,80 @@
         .banner {
             margin: 24px 40px 0;
             padding: 14px 20px;
-            background: #fef2f2;
-            color: #991b1b;
             border-radius: 10px;
             font-weight: 600;
             text-align: center;
         }
+        .banner-danger { background: #fef2f2; color: #991b1b; }
+        .banner-warn { background: #fffbeb; color: #92400e; }
+        .banner-info { background: #f0f9ff; color: #1e40af; }
+        .banner-actions { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 10px; }
+        .toolbar {
+            padding: 20px 40px 8px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+        }
+        .toolbar button, .banner-actions button, .compare-actions button, .section-actions button {
+            padding: 8px 14px;
+            font-size: 14px;
+        }
+        .btn-secondary {
+            background: white;
+            color: #1e40af;
+            border: 1px solid #93c5fd;
+        }
+        .btn-secondary:hover { background: #eff6ff; }
+        .btn-ghost {
+            background: transparent;
+            color: #1e40af;
+            border: 1px dashed #93c5fd;
+        }
+        .btn-ghost:hover { background: #f8fafc; }
+        .meta-row {
+            padding: 8px 40px 20px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .meta-row textarea.meta { grid-column: 1 / -1; min-height: 64px; resize: vertical; }
+        .compare {
+            margin: 8px 40px 0;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            display: none;
+            overflow: hidden;
+        }
+        .compare.open { display: block; }
+        .compare h2 { margin: 0; padding: 16px 20px; background: #f8fafc; font-size: 1.05rem; color: #1e40af; }
+        .compare-body { padding: 0 20px 16px; }
+        .pin { background: #f0f9ff; border-radius: 10px; padding: 12px 16px; margin: 12px 0; }
+        .pin li { margin: 6px 0; }
+        .diff-section { margin: 14px 0; border-top: 1px solid #e2e8f0; padding-top: 12px; }
+        .diff-section summary { cursor: pointer; font-weight: 600; color: #1e40af; }
+        .diff-line { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12.5px; white-space: pre-wrap; padding: 2px 8px; border-radius: 4px; }
+        .diff-add { background: #dcfce7; color: #14532d; }
+        .diff-del { background: #fee2e2; color: #7f1d1d; }
+        .diff-same { color: #64748b; }
+        .compare-actions { padding: 0 20px 16px; display: flex; gap: 8px; flex-wrap: wrap; }
+        .curl-row { display: flex; gap: 8px; align-items: flex-start; margin-top: 12px; }
+        .curl-row pre { flex: 1; }
         footer { padding: 16px 40px 28px; color: #94a3b8; font-size: 13px; text-align: center; }
+        footer a { color: #1e40af; }
+        .sr-only { position: absolute; left: -9999px; }
+        @media (max-width: 700px) {
+            .meta-row { grid-template-columns: 1fr; }
+            .form-wrap, .section, .toolbar, .meta-row { padding-left: 20px; padding-right: 20px; }
+        }
+        @media print {
+            body { background: white; padding: 0; color: #000; }
+            .form-wrap, .toolbar, .meta-row, .no-print, .banner-actions, .compare-actions, .section-actions, .curl-row button { display: none !important; }
+            .container { box-shadow: none; border-radius: 0; }
+            .section { break-inside: avoid; page-break-inside: avoid; }
+            pre { background: #f8fafc !important; color: #0f172a !important; }
+            header { break-after: avoid; }
+        }
     </style>
 </head>
 <body>
@@ -97,7 +169,7 @@
                 <input type="text" name="url" placeholder="checkpoint.com" value="{{ url }}" required autocomplete="off">
                 <button type="submit">Analyze website</button>
             </form>
-            <p class="hint">Passive lookup only (HTTP, DNS, WHOIS, SSL). No active probing.</p>
+            <p class="hint">Passive lookup only (HTTP, DNS, WHOIS, SSL). No active probing. Timing is from this scanner host, not end users.</p>
         </div>
 
         {% if result %}
@@ -106,8 +178,55 @@
                 <footer>Release {{ release }}</footer>
             {% else %}
                 {% if result.cloudguard %}
-                    <div class="banner">Check Point CloudGuard WAF detected (i2.checkpoint.com CNAME)</div>
+                    <div class="banner banner-danger">Check Point CloudGuard WAF detected (i2.checkpoint.com CNAME)</div>
                 {% endif %}
+                {% if result.ssl_expiring %}
+                    <div class="banner banner-warn">TLS certificate expires {{ result.ssl_expires_on }} (within 30 days)</div>
+                {% endif %}
+                <div id="baseline-banner" class="banner banner-info no-print" hidden>
+                    <div id="baseline-banner-text"></div>
+                    <div class="banner-actions">
+                        <button type="button" class="btn-secondary" id="btn-compare">Compare</button>
+                        <button type="button" class="btn-secondary" id="btn-replace">Replace baseline</button>
+                        <button type="button" class="btn-ghost" id="btn-clear">Clear baseline</button>
+                    </div>
+                </div>
+
+                <div class="toolbar no-print">
+                    <button type="button" id="btn-copy">Copy markdown</button>
+                    <button type="button" class="btn-secondary" id="btn-download">Download .md</button>
+                    <button type="button" class="btn-secondary" id="btn-print">Print / Save PDF</button>
+                    <button type="button" class="btn-secondary" id="btn-baseline">Save as baseline</button>
+                    <a class="btn-link btn-secondary" id="link-wafbuddy" href="{{ wafbuddy_url }}" target="_blank" rel="noopener">Open WAFBuddy</a>
+                </div>
+                <div class="meta-row no-print">
+                    <input type="text" id="meta-ticket" placeholder="Ticket (optional)" autocomplete="off">
+                    <input type="text" id="meta-customer" placeholder="Customer (optional)" autocomplete="off">
+                    <textarea class="meta" id="meta-notes" placeholder="Notes to include in the copied markdown (optional)"></textarea>
+                </div>
+                <p class="hint no-print" style="margin-top:0;padding-bottom:8px;">Baselines stay in this browser only. Clearing site data removes them. Ticket/customer/notes never leave this page.</p>
+
+                <div id="compare-panel" class="compare no-print">
+                    <h2>Before / after</h2>
+                    <div class="compare-body" id="compare-body"></div>
+                    <div class="compare-actions">
+                        <button type="button" id="btn-copy-compare">Copy comparison markdown</button>
+                        <button type="button" class="btn-ghost" id="btn-close-compare">Close</button>
+                    </div>
+                </div>
+
+                <textarea id="report-md" class="sr-only" readonly>{{ result.markdown }}</textarea>
+
+                <div class="section">
+                    <h2>Performance</h2>
+                    <pre>{{ result.perf }}</pre>
+                    {% if result.curl_timing %}
+                    <div class="curl-row no-print">
+                        <pre id="curl-cmd">{{ result.curl_timing }}</pre>
+                        <button type="button" class="btn-secondary section-actions" id="btn-copy-curl">Copy curl</button>
+                    </div>
+                    {% endif %}
+                </div>
                 <div class="section">
                     <h2>Connection</h2>
                     <pre>{{ result.performance }}</pre>
@@ -164,11 +283,24 @@
                     <h2>CloudGuard WAF summary</h2>
                     <pre>{{ result.summary }}</pre>
                 </div>
-                <footer>Scanned {{ result.scanned_at }} · Release {{ release }}</footer>
+                <footer>
+                    Scanned {{ result.scanned_at }}
+                    · Release {{ release }}
+                    · <a href="{{ wafbuddy_url }}" target="_blank" rel="noopener">WAFBuddy</a> for HAR before/after
+                </footer>
             {% endif %}
         {% else %}
-            <footer>Release {{ release }}</footer>
+            <footer>
+                Release {{ release }}
+                · Adjacent tool: <a href="{{ wafbuddy_url }}" target="_blank" rel="noopener">WAFBuddy</a> (HAR / migration workbench)
+            </footer>
         {% endif %}
     </div>
+    <script>
+    const SCAN = {{ result|tojson }};
+    const WAFBUDDY_URL = {{ wafbuddy_url|tojson }};
+    const APP_RELEASE = {{ release|tojson }};
+    </script>
+    <script src="{{ url_for('static', filename='detective.js') }}"></script>
 </body>
 </html>
