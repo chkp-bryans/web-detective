@@ -162,7 +162,7 @@
     <div class="container">
         <header>
             <h1>Website Detective</h1>
-            <p>CloudGuard WAF reconnaissance report · {{ release }}</p>
+            <p>Check Point WAF reconnaissance report · {{ release }}</p>
         </header>
         <div class="form-wrap">
             <form method="post" action="/">
@@ -178,7 +178,7 @@
                 <footer>Release {{ release }}</footer>
             {% else %}
                 {% if result.cloudguard %}
-                    <div class="banner banner-danger">Check Point CloudGuard WAF detected (i2.checkpoint.com CNAME)</div>
+                    <div class="banner banner-danger">Check Point WAF detected (i2.checkpoint.com CNAME)</div>
                 {% endif %}
                 {% if result.ssl_expiring %}
                     <div class="banner banner-warn">TLS certificate expires {{ result.ssl_expires_on }} (within 30 days)</div>
@@ -280,7 +280,7 @@
                     <pre>{{ result.security }}</pre>
                 </div>
                 <div class="section summary">
-                    <h2>CloudGuard WAF summary</h2>
+                    <h2>Check Point WAF summary</h2>
                     <pre>{{ result.summary }}</pre>
                 </div>
                 <footer>
