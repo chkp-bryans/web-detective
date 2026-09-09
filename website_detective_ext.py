@@ -7,12 +7,11 @@ import socket
 import ssl
 import time
 from datetime import datetime, timedelta, timezone
-from urllib.parse import urljoin, urlparse
+from urllib.parse import urlparse
 
 import requests
 
 from website_detective import (
-    MAX_REDIRECTS,
     SECURITY_HEADERS,
     ScanError,
     USER_AGENT,
@@ -21,7 +20,6 @@ from website_detective import (
 
 APP_RELEASE = os.environ.get("RELEASE") or os.environ.get("APP_RELEASE") or "1.1.0"
 SAMPLE_TIMEOUT = 5
-TIMING_BUDGET_S = 10
 SSL_EXPIRY_DAYS = 30
 REPORT_SECTIONS = [
     ("Performance", "perf"),
@@ -196,8 +194,35 @@ def _connect_tls_ms(url: str):
                     pass
 
 
+def _total_time_ms(performance: str):
+    for line in (performance or "").splitlines():
+        if "total time" in line.lower() and ":" in line:
+            raw = line.split(":", 1)[1].strip().split()[0]
+            try:
+                return float(raw) * 1000
+            except ValueError:
+                return None
+    return None
+
+
+def detect_rate_limit(report: dict):
+    status = str(report.get("status") or "")
+    err = str(report.get("error") or "").lower()
+    headers = str(report.get("headers") or "").lower()
+    reasons = []
+    if status in {"429", "503"}:
+        reasons.append(f"HTTP {status}")
+    if "429" in err or "too many requests" in err:
+        reasons.append("request error looks like rate limiting")
+    if "retry-after" in headers:
+        reasons.append("Retry-After header")
+    if status == "403" and ("cf-ray" in headers or "cloudflare" in headers):
+        reasons.append("Cloudflare 403 — this scanner IP may be challenged")
+    return bool(reasons), "; ".join(reasons)
+
+
 def measure_timing(url: str, extra: int = 0) -> dict:
-    """Cheap DNS / TCP+TLS / one header-only GET. No extra samples, no body download."""
+    """DNS + one TCP/TLS handshake. No extra GET to the target (avoids rate limits)."""
     out = {
         "perf_dns_ms": None,
         "perf_connect_ms": None,
@@ -212,76 +237,20 @@ def measure_timing(url: str, extra: int = 0) -> dict:
     }
     if not url:
         return out
-    started = time.perf_counter()
-
-    def remaining():
-        return max(1.0, TIMING_BUDGET_S - (time.perf_counter() - started))
-
     try:
         t0 = time.perf_counter()
         assert_url_allowed(url)
         out["perf_dns_ms"] = (time.perf_counter() - t0) * 1000
     except ScanError:
         return out
-    if remaining() > 1:
-        out["perf_connect_ms"] = _connect_tls_ms(url)
-
-    hops = []
-    current = url
-    final = url
-    session = requests.Session()
-    session.headers["User-Agent"] = USER_AGENT
-    try:
-        for _ in range(MAX_REDIRECTS + 1):
-            if remaining() < 1:
-                break
-            try:
-                assert_url_allowed(current)
-            except ScanError:
-                break
-            resp = session.get(
-                current,
-                timeout=min(SAMPLE_TIMEOUT, remaining()),
-                allow_redirects=False,
-                stream=True,
-            )
-            ttfb_ms = resp.elapsed.total_seconds() * 1000
-            location = resp.headers.get("Location") if (resp.is_redirect or resp.is_permanent_redirect) else None
-            hops.append(
-                {
-                    "url": current,
-                    "status": resp.status_code,
-                    "location": location,
-                    "ttfb_ms": ttfb_ms,
-                }
-            )
-            if location:
-                resp.close()
-                current = urljoin(current, location)
-                continue
-            length = resp.headers.get("Content-Length")
-            if length and str(length).isdigit():
-                out["perf_body_bytes"] = int(length)
-            resp.close()
-            final = current
-            break
-    except (requests.RequestException, OSError, ScanError):
-        pass
-    finally:
-        session.close()
-
-    out["perf_redirects"] = hops
-    samples = []
-    if hops:
-        samples.append(hops[-1]["ttfb_ms"])
-    if extra and remaining() > 1:
-        samples.extend(sample_ttfb(final, extra=extra, timeout=min(SAMPLE_TIMEOUT, remaining())))
-    if samples:
-        out["perf_ttfb_samples"] = samples
-        out["perf_ttfb_ms"] = _median(samples)
-        out["perf_ttfb_min_ms"] = min(samples)
-        out["perf_ttfb_max_ms"] = max(samples)
-    out["curl_timing"] = curl_timing_command(final)
+    out["perf_connect_ms"] = _connect_tls_ms(url)
+    if extra:
+        samples = sample_ttfb(url, extra=extra)
+        if samples:
+            out["perf_ttfb_samples"] = samples
+            out["perf_ttfb_ms"] = _median(samples)
+            out["perf_ttfb_min_ms"] = min(samples)
+            out["perf_ttfb_max_ms"] = max(samples)
     return out
 
 
@@ -335,7 +304,7 @@ def to_markdown(report: dict, meta=None) -> str:
 def _security_flags(security_text: str) -> dict:
     flags = {}
     for name in SECURITY_HEADERS:
-        flags[name] = f"✅ {name}" in (security_text or "")
+        flags[name] = f"\u2705 {name}" in (security_text or "")
     return flags
 
 
@@ -361,9 +330,18 @@ def enhance(report: dict) -> dict:
         report["ssl_expiring"] = expiring
         report["ssl_expires_on"] = expires_on
         report["security_flags"] = _security_flags(report.get("security") or "")
+        limited, reason = detect_rate_limit(report)
+        report["rate_limited"] = limited
+        report["rate_limit_reason"] = reason
         url = _probe_url(report)
         if url and not report.get("error") and report.get("perf_dns_ms") is None:
             measured = measure_timing(url, extra=0)
+            total_ms = _total_time_ms(report.get("performance") or "")
+            if total_ms is not None and not measured.get("perf_ttfb_ms"):
+                measured["perf_ttfb_ms"] = total_ms
+                measured["perf_ttfb_samples"] = [total_ms]
+                measured["perf_ttfb_min_ms"] = total_ms
+                measured["perf_ttfb_max_ms"] = total_ms
             for key, value in measured.items():
                 if report.get(key) in (None, "", []):
                     report[key] = value
