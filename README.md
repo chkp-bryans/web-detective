@@ -16,7 +16,10 @@ After a scan:
 - **Performance** — DNS, Connect+TLS, TTFB (median of up to 3 samples), body size, and redirect hops. These numbers are from the **scanner host**, not from the customer’s users. Treat TTFB deltas under ~50 ms or ~15% as directional noise.
 - **Copy curl** — a `curl -w` timing probe the customer can run. Paste that output into [WAFBuddy](https://github.com/chkp-bryans/wafbuddy_v2) when the question is browser-path (cache, 403/429, login, p95). Detective does not ingest HARs.
 
-Optional env: `WAFBUDDY_URL` (default `https://github.com/chkp-bryans/wafbuddy_v2`) if you host WAFBuddy yourself.
+Optional env:
+
+- `WAFBUDDY_URL` (default `https://github.com/chkp-bryans/wafbuddy_v2`) if you host WAFBuddy yourself.
+- `RELEASE` (default `1.1.0`) shown in the footer, copied markdown, and `GET /health`.
 
 CLI markdown:
 
@@ -50,6 +53,7 @@ docker build -t web-detective .
 docker run --rm -p 8000:8000 \
   -e BASIC_AUTH_USER=detective \
   -e BASIC_AUTH_PASSWORD=changeme \
+  -e RELEASE=1.1.0 \
   web-detective
 ```
 
@@ -58,7 +62,7 @@ docker run --rm -p 8000:8000 \
 1. DNS: `detective.csadocs.com` **A** → `20.98.217.111`
 2. Create an **Application** from this GitHub repo, branch `main`
 3. Build type: **Dockerfile** (`./Dockerfile`)
-4. Container port: **8000`
+4. Container port: **8000**
 5. Domain: `detective.csadocs.com`, HTTPS on, certificate **Let's Encrypt** (not “none”). If the browser still shows a Traefik default cert, delete/re-add the domain after DNS is live, or restart Traefik in Dokploy settings.
 6. **Environment** (required — Traefik UI auth is easy to miss; the app enforces this):
 
@@ -66,15 +70,16 @@ docker run --rm -p 8000:8000 \
    BASIC_AUTH_USER=detective
    BASIC_AUTH_PASSWORD=<strong password>
    WAFBUDDY_URL=https://github.com/chkp-bryans/wafbuddy_v2
+   RELEASE=1.1.0
    ```
 
-   Do not commit the password. `WAFBUDDY_URL` is optional (that GitHub URL is the default). Redeploy after saving env vars.
+   Do not commit the password. `WAFBUDDY_URL` and `RELEASE` are optional (`1.1.0` is the default release). Redeploy after saving env vars.
 7. Optional extra layer: Application **Advanced → Security** (Dokploy Traefik basic auth).
 8. Deploy. Auto-deploy on push to `main` if the GitHub provider is connected.
 
 Without `BASIC_AUTH_USER` / `BASIC_AUTH_PASSWORD` the scanner returns **503** (locked). `/health` stays open for Dokploy.
 
-Health check: `GET /health` → `{"status":"ok"}`.
+Health check: `GET /health` → `{"status":"ok","release":"1.1.0"}`.
 
 Scans can take up to ~90s (WHOIS / BuiltWith), plus two short TTFB samples. Gunicorn timeout is 120s; keep Traefik’s read timeout at least that high.
 
