@@ -90,7 +90,7 @@
     <div class="container">
         <header>
             <h1>Website Detective</h1>
-            <p>CloudGuard WAF reconnaissance report</p>
+            <p>CloudGuard WAF reconnaissance report · {{ release }}</p>
         </header>
         <div class="form-wrap">
             <form method="post" action="/">
@@ -103,6 +103,7 @@
         {% if result %}
             {% if result.error %}
                 <div class="error">{{ result.error }}</div>
+                <footer>Release {{ release }}</footer>
             {% else %}
                 {% if result.cloudguard %}
                     <div class="banner">Check Point CloudGuard WAF detected (i2.checkpoint.com CNAME)</div>
@@ -163,8 +164,10 @@
                     <h2>CloudGuard WAF summary</h2>
                     <pre>{{ result.summary }}</pre>
                 </div>
-                <footer>Scanned {{ result.scanned_at }}</footer>
+                <footer>Scanned {{ result.scanned_at }} · Release {{ release }}</footer>
             {% endif %}
+        {% else %}
+            <footer>Release {{ release }}</footer>
         {% endif %}
     </div>
 </body>
