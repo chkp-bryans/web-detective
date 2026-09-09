@@ -22,12 +22,17 @@ class AppTests(unittest.TestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertIn(b"Website Detective", resp.data)
         self.assertIn(b"WAFBuddy", resp.data)
-        self.assertIn(b"github.com/chkp-bryans/wafbuddy_v2", resp.data)
+        self.assertIn(b"wafbuddy.csadocs.com", resp.data)
 
     def test_health(self):
         resp = self.client.get("/health")
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.json["status"], "ok")
+        self.assertEqual(resp.json["release"], "1.1.0")
+
+    def test_home_shows_release(self):
+        resp = self.client.get("/")
+        self.assertIn(b"Release 1.1.0", resp.data)
 
     @patch("app.scan")
     def test_results_toolbar(self, mock_scan):

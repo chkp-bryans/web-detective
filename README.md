@@ -14,11 +14,11 @@ After a scan:
 - **Print / Save PDF** — browser print dialog; the form and toolbar are hidden.
 - **Save as baseline** — stores this hostname’s report in *this browser only*. Scan again later and **Compare** for a CloudGuard / CNAME / IP / header / TTFB diff. Replace or clear when you want. Clearing site data removes baselines.
 - **Performance** — DNS, Connect+TLS, TTFB (median of up to 3 samples), body size, and redirect hops. These numbers are from the **scanner host**, not from the customer’s users. Treat TTFB deltas under ~50 ms or ~15% as directional noise.
-- **Copy curl** — a `curl -w` timing probe the customer can run. Paste that output into [WAFBuddy](https://github.com/chkp-bryans/wafbuddy_v2) when the question is browser-path (cache, 403/429, login, p95). Detective does not ingest HARs.
+- **Copy curl** — a `curl -w` timing probe the customer can run. Paste that output into [WAFBuddy](https://wafbuddy.csadocs.com) when the question is browser-path (cache, 403/429, login, p95). Detective does not ingest HARs.
 
 Optional env:
 
-- `WAFBUDDY_URL` (default `https://github.com/chkp-bryans/wafbuddy_v2`) if you host WAFBuddy yourself.
+- `WAFBUDDY_URL` (default `https://wafbuddy.csadocs.com`) if you need to override the WAFBuddy link.
 - `RELEASE` (default `1.1.0`) shown in the footer, copied markdown, and `GET /health`.
 
 CLI markdown:
@@ -53,7 +53,6 @@ docker build -t web-detective .
 docker run --rm -p 8000:8000 \
   -e BASIC_AUTH_USER=detective \
   -e BASIC_AUTH_PASSWORD=changeme \
-  -e RELEASE=1.1.0 \
   web-detective
 ```
 
@@ -69,11 +68,11 @@ docker run --rm -p 8000:8000 \
    ```
    BASIC_AUTH_USER=detective
    BASIC_AUTH_PASSWORD=<strong password>
-   WAFBUDDY_URL=https://github.com/chkp-bryans/wafbuddy_v2
+   WAFBUDDY_URL=https://wafbuddy.csadocs.com
    RELEASE=1.1.0
    ```
 
-   Do not commit the password. `WAFBUDDY_URL` and `RELEASE` are optional (`1.1.0` is the default release). Redeploy after saving env vars.
+   Do not commit the password. `WAFBUDDY_URL` is optional (`https://wafbuddy.csadocs.com` is the default). If Dokploy still has the old GitHub URL set, change or remove it, then redeploy.
 7. Optional extra layer: Application **Advanced → Security** (Dokploy Traefik basic auth).
 8. Deploy. Auto-deploy on push to `main` if the GitHub provider is connected.
 
