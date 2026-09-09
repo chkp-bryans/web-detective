@@ -50,7 +50,7 @@ class AppTests(unittest.TestCase):
         self.assertIn(b"Copy curl", body)
         self.assertIn(b"From scanner host", body)
         self.assertIn(b"id=\"report-md\"", body)
-        self.assertIn(b"Check Point CloudGuard WAF detected", body)
+        self.assertIn(b"Check Point WAF detected", body)
 
     @patch("app.scan")
     def test_ssl_expiry_banner(self, mock_scan):

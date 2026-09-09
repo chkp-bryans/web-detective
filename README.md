@@ -1,8 +1,8 @@
 # Website Detective
 
-Passive reconnaissance for a domain: HTTP headers, DNS (including CloudGuard `i2.checkpoint.com` CNAMEs), CDN / load balancer / WAF fingerprints, third-party links, WHOIS, SSL, BuiltWith, a live security-header audit, and basic timing from the scanner host.
+Passive reconnaissance for a domain: HTTP headers, DNS (including Check Point WAF `i2.checkpoint.com` CNAMEs), CDN / load balancer / WAF fingerprints, third-party links, WHOIS, SSL, BuiltWith, a live security-header audit, and basic timing from the scanner host.
 
-Intended for authorized CloudGuard / WAF reviews. It does **not** probe or exploit targets.
+Intended for authorized Check Point WAF reviews. It does **not** probe or exploit targets.
 
 Live instance (private, basic auth): `https://detective.csadocs.com`
 
@@ -12,7 +12,7 @@ After a scan:
 
 - **Copy markdown** / **Download .md** — paste-ready report for tickets and notes. Optional ticket, customer, and notes fields are prepended locally and never sent back to the server.
 - **Print / Save PDF** — browser print dialog; the form and toolbar are hidden.
-- **Save as baseline** — stores this hostname’s report in *this browser only*. Scan again later and **Compare** for a CloudGuard / CNAME / IP / header / TTFB diff. Replace or clear when you want. Clearing site data removes baselines.
+- **Save as baseline** — stores this hostname’s report in *this browser only*. Scan again later and **Compare** for a Check Point WAF / CNAME / IP / header / TTFB diff. Replace or clear when you want. Clearing site data removes baselines.
 - **Performance** — DNS, Connect+TLS, TTFB (median of up to 3 samples), body size, and redirect hops. These numbers are from the **scanner host**, not from the customer’s users. Treat TTFB deltas under ~50 ms or ~15% as directional noise.
 - **Copy curl** — a `curl -w` timing probe the customer can run. Paste that output into [WAFBuddy](https://wafbuddy.csadocs.com) when the question is browser-path (cache, 403/429, login, p95). Detective does not ingest HARs.
 
