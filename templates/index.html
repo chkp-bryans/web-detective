@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% if result and result.domain %}Website Detective • {{ result.domain }}{% else %}Website Detective{% endif %}</title>
+    <title>{% if result and result.domain %}Website Detective • {{ result.domain }}{% elif url %}Website Detective • {{ url }}{% else %}Website Detective{% endif %}</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
         * { box-sizing: border-box; }
@@ -165,7 +165,7 @@
             <p>Check Point WAF reconnaissance report · {{ release }}</p>
         </header>
         <div class="form-wrap">
-            <form method="post" action="/">
+            <form method="get" action="/">
                 <input type="text" name="url" placeholder="checkpoint.com" value="{{ url }}" required autocomplete="off">
                 <button type="submit">Analyze website</button>
             </form>
@@ -300,6 +300,7 @@
     const SCAN = {{ result|tojson }};
     const WAFBUDDY_URL = {{ wafbuddy_url|tojson }};
     const APP_RELEASE = {{ release|tojson }};
+    const SCAN_BUDGET = {{ scan_budget|tojson }};
     </script>
     <script src="{{ url_for('static', filename='detective.js') }}"></script>
 </body>
