@@ -12,7 +12,6 @@ from urllib.parse import urljoin, urlparse
 import requests
 
 from website_detective import (
-    MAX_BODY_BYTES,
     MAX_REDIRECTS,
     SECURITY_HEADERS,
     ScanError,
@@ -21,7 +20,8 @@ from website_detective import (
 )
 
 APP_RELEASE = os.environ.get("RELEASE") or os.environ.get("APP_RELEASE") or "1.1.0"
-SAMPLE_TIMEOUT = 8
+SAMPLE_TIMEOUT = 5
+TIMING_BUDGET_S = 10
 SSL_EXPIRY_DAYS = 30
 REPORT_SECTIONS = [
     ("Performance", "perf"),
@@ -143,7 +143,7 @@ def format_performance(report: dict) -> str:
     return "\n".join(lines)
 
 
-def sample_ttfb(url: str, extra: int = 2, timeout: int = SAMPLE_TIMEOUT):
+def sample_ttfb(url: str, extra: int = 0, timeout: int = SAMPLE_TIMEOUT):
     samples = []
     for _ in range(extra):
         session = requests.Session()
@@ -196,20 +196,8 @@ def _connect_tls_ms(url: str):
                     pass
 
 
-def _read_body(resp):
-    total = 0
-    started = time.perf_counter()
-    for chunk in resp.iter_content(chunk_size=65536):
-        if not chunk:
-            continue
-        total += len(chunk)
-        if total > MAX_BODY_BYTES:
-            break
-    return (time.perf_counter() - started) * 1000, total
-
-
-def measure_timing(url: str, extra: int = 2) -> dict:
-    """Fresh DNS / TCP+TLS / redirect / body timings from the scanner host."""
+def measure_timing(url: str, extra: int = 0) -> dict:
+    """Cheap DNS / TCP+TLS / one header-only GET. No extra samples, no body download."""
     out = {
         "perf_dns_ms": None,
         "perf_connect_ms": None,
@@ -224,13 +212,19 @@ def measure_timing(url: str, extra: int = 2) -> dict:
     }
     if not url:
         return out
+    started = time.perf_counter()
+
+    def remaining():
+        return max(1.0, TIMING_BUDGET_S - (time.perf_counter() - started))
+
     try:
         t0 = time.perf_counter()
         assert_url_allowed(url)
         out["perf_dns_ms"] = (time.perf_counter() - t0) * 1000
     except ScanError:
         return out
-    out["perf_connect_ms"] = _connect_tls_ms(url)
+    if remaining() > 1:
+        out["perf_connect_ms"] = _connect_tls_ms(url)
 
     hops = []
     current = url
@@ -239,41 +233,36 @@ def measure_timing(url: str, extra: int = 2) -> dict:
     session.headers["User-Agent"] = USER_AGENT
     try:
         for _ in range(MAX_REDIRECTS + 1):
+            if remaining() < 1:
+                break
             try:
                 assert_url_allowed(current)
             except ScanError:
                 break
             resp = session.get(
-                current, timeout=SAMPLE_TIMEOUT, allow_redirects=False, stream=True
+                current,
+                timeout=min(SAMPLE_TIMEOUT, remaining()),
+                allow_redirects=False,
+                stream=True,
             )
             ttfb_ms = resp.elapsed.total_seconds() * 1000
-            if resp.is_redirect or resp.is_permanent_redirect:
-                location = resp.headers.get("Location")
-                hops.append(
-                    {
-                        "url": current,
-                        "status": resp.status_code,
-                        "location": location,
-                        "ttfb_ms": ttfb_ms,
-                    }
-                )
-                resp.close()
-                if not location:
-                    break
-                current = urljoin(current, location)
-                continue
-            body_ms, body_bytes = _read_body(resp)
-            resp.close()
+            location = resp.headers.get("Location") if (resp.is_redirect or resp.is_permanent_redirect) else None
             hops.append(
                 {
                     "url": current,
                     "status": resp.status_code,
-                    "location": None,
+                    "location": location,
                     "ttfb_ms": ttfb_ms,
                 }
             )
-            out["perf_body_ms"] = body_ms
-            out["perf_body_bytes"] = body_bytes
+            if location:
+                resp.close()
+                current = urljoin(current, location)
+                continue
+            length = resp.headers.get("Content-Length")
+            if length and str(length).isdigit():
+                out["perf_body_bytes"] = int(length)
+            resp.close()
             final = current
             break
     except (requests.RequestException, OSError, ScanError):
@@ -285,7 +274,8 @@ def measure_timing(url: str, extra: int = 2) -> dict:
     samples = []
     if hops:
         samples.append(hops[-1]["ttfb_ms"])
-    samples.extend(sample_ttfb(final, extra=extra))
+    if extra and remaining() > 1:
+        samples.extend(sample_ttfb(final, extra=extra, timeout=min(SAMPLE_TIMEOUT, remaining())))
     if samples:
         out["perf_ttfb_samples"] = samples
         out["perf_ttfb_ms"] = _median(samples)
@@ -373,19 +363,10 @@ def enhance(report: dict) -> dict:
         report["security_flags"] = _security_flags(report.get("security") or "")
         url = _probe_url(report)
         if url and not report.get("error") and report.get("perf_dns_ms") is None:
-            measured = measure_timing(url)
+            measured = measure_timing(url, extra=0)
             for key, value in measured.items():
                 if report.get(key) in (None, "", []):
                     report[key] = value
-        else:
-            samples = list(report.get("perf_ttfb_samples") or [])
-            if url and not report.get("error") and len(samples) < 2:
-                samples.extend(sample_ttfb(url, extra=2))
-            if samples:
-                report["perf_ttfb_samples"] = samples
-                report["perf_ttfb_ms"] = _median(samples)
-                report["perf_ttfb_min_ms"] = min(samples)
-                report["perf_ttfb_max_ms"] = max(samples)
         final_url = report.get("url") or url
         report["curl_timing"] = report.get("curl_timing") or curl_timing_command(final_url)
         report.setdefault("perf_redirects", [])
