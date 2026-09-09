@@ -11,6 +11,7 @@ AUTH_USER = os.environ.get("BASIC_AUTH_USER", "")
 AUTH_PASSWORD = os.environ.get("BASIC_AUTH_PASSWORD", "")
 ALLOW_UNAUTHENTICATED = os.environ.get("DETECTIVE_ALLOW_UNAUTHENTICATED", "") == "1"
 WAFBUDDY_URL = os.environ.get("WAFBUDDY_URL", "https://github.com/chkp-bryans/wafbuddy_v2")
+APP_RELEASE = os.environ.get("RELEASE") or os.environ.get("APP_RELEASE") or "1.1.0"
 
 
 def _authorized() -> bool:
@@ -46,7 +47,7 @@ def require_basic_auth():
 
 @app.get("/health")
 def health():
-    return jsonify(status="ok")
+    return jsonify(status="ok", release=APP_RELEASE)
 
 
 @app.route("/", methods=["GET", "POST"])
@@ -64,6 +65,7 @@ def index():
         result=result,
         url=url,
         wafbuddy_url=WAFBUDDY_URL,
+        release=APP_RELEASE,
     )
 
 
