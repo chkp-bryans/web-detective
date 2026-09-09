@@ -3,13 +3,14 @@ import os
 
 from flask import Flask, Response, jsonify, render_template, request
 
-from website_detective import scan
+from website_detective import DEFAULT_WAFBUDDY_URL, scan
 
 app = Flask(__name__)
 
 AUTH_USER = os.environ.get("BASIC_AUTH_USER", "")
 AUTH_PASSWORD = os.environ.get("BASIC_AUTH_PASSWORD", "")
 ALLOW_UNAUTHENTICATED = os.environ.get("DETECTIVE_ALLOW_UNAUTHENTICATED", "") == "1"
+WAFBUDDY_URL = os.environ.get("WAFBUDDY_URL", DEFAULT_WAFBUDDY_URL)
 
 
 def _authorized() -> bool:
@@ -58,7 +59,12 @@ def index():
             result = {"error": "Enter a website to analyze.", "url": ""}
         else:
             result = scan(url)
-    return render_template("index.html", result=result, url=url)
+    return render_template(
+        "index.html",
+        result=result,
+        url=url,
+        wafbuddy_url=WAFBUDDY_URL,
+    )
 
 
 if __name__ == "__main__":
