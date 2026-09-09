@@ -1,9 +1,52 @@
 import hmac
 import os
+import threading
 
 from flask import Flask, Response, jsonify, render_template, request
 
 from website_detective import scan as _core_scan
+
+
+def _call_with_timeout(fn, seconds):
+    def wrapped(*args, **kwargs):
+        box = {}
+
+        def run():
+            try:
+                box["r"] = fn(*args, **kwargs)
+            except Exception as exc:
+                box["e"] = exc
+
+        thread = threading.Thread(target=run, daemon=True)
+        thread.start()
+        thread.join(seconds)
+        if thread.is_alive():
+            raise TimeoutError(f"{getattr(fn, '__name__', 'call')} timed out after {seconds}s")
+        if "e" in box:
+            raise box["e"]
+        return box.get("r")
+
+    return wrapped
+
+
+def _patch_slow_lookups():
+    try:
+        import whois as whois_mod
+        if not getattr(whois_mod, "_wd_timed", False):
+            whois_mod.whois = _call_with_timeout(whois_mod.whois, 15)
+            whois_mod._wd_timed = True
+    except Exception:
+        pass
+    try:
+        import builtwith as builtwith_mod
+        if not getattr(builtwith_mod, "_wd_timed", False):
+            builtwith_mod.parse = _call_with_timeout(builtwith_mod.parse, 12)
+            builtwith_mod._wd_timed = True
+    except Exception:
+        pass
+
+
+_patch_slow_lookups()
 
 try:
     from website_detective_ext import enhance
