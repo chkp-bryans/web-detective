@@ -3,14 +3,14 @@ import os
 
 from flask import Flask, Response, jsonify, render_template, request
 
-from website_detective import DEFAULT_WAFBUDDY_URL, scan
+from website_detective import scan
 
 app = Flask(__name__)
 
 AUTH_USER = os.environ.get("BASIC_AUTH_USER", "")
 AUTH_PASSWORD = os.environ.get("BASIC_AUTH_PASSWORD", "")
 ALLOW_UNAUTHENTICATED = os.environ.get("DETECTIVE_ALLOW_UNAUTHENTICATED", "") == "1"
-WAFBUDDY_URL = os.environ.get("WAFBUDDY_URL", DEFAULT_WAFBUDDY_URL)
+WAFBUDDY_URL = os.environ.get("WAFBUDDY_URL", "https://github.com/chkp-bryans/wafbuddy_v2")
 
 
 def _authorized() -> bool:
