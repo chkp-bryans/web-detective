@@ -3,12 +3,17 @@
 from __future__ import annotations
 
 import os
+import socket
 import ssl
+import time
 from datetime import datetime, timedelta, timezone
+from urllib.parse import urljoin, urlparse
 
 import requests
 
 from website_detective import (
+    MAX_BODY_BYTES,
+    MAX_REDIRECTS,
     SECURITY_HEADERS,
     ScanError,
     USER_AGENT,
@@ -89,12 +94,13 @@ def parse_ssl_expiry(cert=None, now=None, ssl_text=""):
 
 
 def curl_timing_command(url: str) -> str:
+    """Single-line bash probe. curl -w times are seconds, cumulative from start."""
     safe = (url or "").replace('"', '\\"')
     return (
-        'curl -sS -o /dev/null -w '
-        '"dns:%{time_namelookup} connect:%{time_connect} tls:%{time_appconnect} '
-        'ttfb:%{time_starttransfer} total:%{time_total} code:%{http_code}\\n" '
-        f'-L "{safe}"'
+        "curl -sS -o /dev/null -L -w "
+        "'dns %{time_namelookup}s | tcp %{time_connect}s | tls %{time_appconnect}s | "
+        "ttfb %{time_starttransfer}s | total %{time_total}s | code %{http_code}\\n' "
+        f'"{safe}"'
     )
 
 
@@ -152,6 +158,141 @@ def sample_ttfb(url: str, extra: int = 2, timeout: int = SAMPLE_TIMEOUT):
         finally:
             session.close()
     return samples
+
+
+def _probe_url(report: dict) -> str:
+    final = (report.get("url") or "").strip()
+    domain = (report.get("domain") or "").strip().lower().rstrip(".")
+    if domain:
+        scheme = urlparse(final).scheme if final else "https"
+        if scheme not in ("http", "https"):
+            scheme = "https"
+        return f"{scheme}://{domain}"
+    return final
+
+
+def _connect_tls_ms(url: str):
+    parsed = urlparse(url)
+    host = parsed.hostname
+    if not host:
+        return None
+    port = parsed.port or (443 if parsed.scheme == "https" else 80)
+    started = time.perf_counter()
+    sock = None
+    wrapped = None
+    try:
+        sock = socket.create_connection((host, port), timeout=SAMPLE_TIMEOUT)
+        if parsed.scheme == "https":
+            wrapped = ssl.create_default_context().wrap_socket(sock, server_hostname=host)
+        return (time.perf_counter() - started) * 1000
+    except OSError:
+        return None
+    finally:
+        for s in (wrapped, sock):
+            if s is not None:
+                try:
+                    s.close()
+                except OSError:
+                    pass
+
+
+def _read_body(resp):
+    total = 0
+    started = time.perf_counter()
+    for chunk in resp.iter_content(chunk_size=65536):
+        if not chunk:
+            continue
+        total += len(chunk)
+        if total > MAX_BODY_BYTES:
+            break
+    return (time.perf_counter() - started) * 1000, total
+
+
+def measure_timing(url: str, extra: int = 2) -> dict:
+    """Fresh DNS / TCP+TLS / redirect / body timings from the scanner host."""
+    out = {
+        "perf_dns_ms": None,
+        "perf_connect_ms": None,
+        "perf_ttfb_samples": [],
+        "perf_ttfb_ms": None,
+        "perf_ttfb_min_ms": None,
+        "perf_ttfb_max_ms": None,
+        "perf_body_ms": None,
+        "perf_body_bytes": None,
+        "perf_redirects": [],
+        "curl_timing": curl_timing_command(url),
+    }
+    if not url:
+        return out
+    try:
+        t0 = time.perf_counter()
+        assert_url_allowed(url)
+        out["perf_dns_ms"] = (time.perf_counter() - t0) * 1000
+    except ScanError:
+        return out
+    out["perf_connect_ms"] = _connect_tls_ms(url)
+
+    hops = []
+    current = url
+    final = url
+    session = requests.Session()
+    session.headers["User-Agent"] = USER_AGENT
+    try:
+        for _ in range(MAX_REDIRECTS + 1):
+            try:
+                assert_url_allowed(current)
+            except ScanError:
+                break
+            resp = session.get(
+                current, timeout=SAMPLE_TIMEOUT, allow_redirects=False, stream=True
+            )
+            ttfb_ms = resp.elapsed.total_seconds() * 1000
+            if resp.is_redirect or resp.is_permanent_redirect:
+                location = resp.headers.get("Location")
+                hops.append(
+                    {
+                        "url": current,
+                        "status": resp.status_code,
+                        "location": location,
+                        "ttfb_ms": ttfb_ms,
+                    }
+                )
+                resp.close()
+                if not location:
+                    break
+                current = urljoin(current, location)
+                continue
+            body_ms, body_bytes = _read_body(resp)
+            resp.close()
+            hops.append(
+                {
+                    "url": current,
+                    "status": resp.status_code,
+                    "location": None,
+                    "ttfb_ms": ttfb_ms,
+                }
+            )
+            out["perf_body_ms"] = body_ms
+            out["perf_body_bytes"] = body_bytes
+            final = current
+            break
+    except (requests.RequestException, OSError, ScanError):
+        pass
+    finally:
+        session.close()
+
+    out["perf_redirects"] = hops
+    samples = []
+    if hops:
+        samples.append(hops[-1]["ttfb_ms"])
+    samples.extend(sample_ttfb(final, extra=extra))
+    if samples:
+        out["perf_ttfb_samples"] = samples
+        out["perf_ttfb_ms"] = _median(samples)
+        out["perf_ttfb_min_ms"] = min(samples)
+        out["perf_ttfb_max_ms"] = max(samples)
+    out["curl_timing"] = curl_timing_command(final)
+    return out
 
 
 def to_markdown(report: dict, meta=None) -> str:
@@ -218,16 +359,23 @@ def enhance(report: dict) -> dict:
         report["ssl_expiring"] = expiring
         report["ssl_expires_on"] = expires_on
         report["security_flags"] = _security_flags(report.get("security") or "")
-        report["curl_timing"] = report.get("curl_timing") or curl_timing_command(report.get("url") or "")
-        samples = list(report.get("perf_ttfb_samples") or [])
-        url = report.get("url") or ""
-        if url and not report.get("error") and len(samples) < 2:
-            samples.extend(sample_ttfb(url, extra=2))
-        if samples:
-            report["perf_ttfb_samples"] = samples
-            report["perf_ttfb_ms"] = _median(samples)
-            report["perf_ttfb_min_ms"] = min(samples)
-            report["perf_ttfb_max_ms"] = max(samples)
+        url = _probe_url(report)
+        if url and not report.get("error") and report.get("perf_dns_ms") is None:
+            measured = measure_timing(url)
+            for key, value in measured.items():
+                if report.get(key) in (None, "", []):
+                    report[key] = value
+        else:
+            samples = list(report.get("perf_ttfb_samples") or [])
+            if url and not report.get("error") and len(samples) < 2:
+                samples.extend(sample_ttfb(url, extra=2))
+            if samples:
+                report["perf_ttfb_samples"] = samples
+                report["perf_ttfb_ms"] = _median(samples)
+                report["perf_ttfb_min_ms"] = min(samples)
+                report["perf_ttfb_max_ms"] = max(samples)
+        final_url = report.get("url") or url
+        report["curl_timing"] = report.get("curl_timing") or curl_timing_command(final_url)
         report.setdefault("perf_redirects", [])
         report["perf"] = format_performance(report)
         report["markdown"] = to_markdown(report)
