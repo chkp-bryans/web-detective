@@ -3,7 +3,20 @@ import os
 
 from flask import Flask, Response, jsonify, render_template, request
 
-from website_detective import scan
+from website_detective import scan as _core_scan
+
+try:
+    from website_detective_ext import enhance
+except ImportError:
+    def enhance(report):
+        return report
+
+
+def scan(url: str):
+    result = _core_scan(url)
+    if isinstance(result, dict) and not result.get("markdown"):
+        result = enhance(result)
+    return result
 
 app = Flask(__name__)
 

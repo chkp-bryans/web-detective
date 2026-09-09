@@ -7,8 +7,9 @@ RUN useradd --create-home --uid 1000 appuser
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY app.py website_detective.py ./
+COPY app.py website_detective.py website_detective_ext.py ./
 COPY templates ./templates
+COPY static ./static
 
 USER appuser
 EXPOSE 8000
