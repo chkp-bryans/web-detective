@@ -17,7 +17,7 @@ const SECTIONS = [
     ["Technology stack", "tech"],
     ["Smart detective", "smart"],
     ["Security headers", "security"],
-    ["CloudGuard WAF summary", "summary"]
+    ["Check Point WAF summary", "summary"]
 ];
 
 function $(id) { return document.getElementById(id); }
@@ -159,7 +159,7 @@ function aRecords(report) {
 function pinnedSummary(base, curr) {
     const items = [];
     if (!!base.cloudguard !== !!curr.cloudguard) {
-        items.push("CloudGuard: " + yesNo(base.cloudguard) + " → " + yesNo(curr.cloudguard));
+        items.push("Check Point WAF: " + yesNo(base.cloudguard) + " → " + yesNo(curr.cloudguard));
     }
     const bC = cnameCloudguard(base), cC = cnameCloudguard(curr);
     if (bC !== cC) {
@@ -190,7 +190,7 @@ function pinnedSummary(base, curr) {
         const sign = delta > 0 ? "+" : "";
         items.push("TTFB: " + Math.round(bT) + " ms → " + Math.round(cT) + " ms (" + sign + Math.round(delta) + " ms)" + (noisy ? " — small change, treat as directional" : ""));
     }
-    if (!items.length) items.push("No CloudGuard / IP / header / TTFB changes in the pinned fields. See section diffs below.");
+    if (!items.length) items.push("No Check Point WAF / IP / header / TTFB changes in the pinned fields. See section diffs below.");
     return items;
 }
 
