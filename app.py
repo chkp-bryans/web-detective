@@ -10,6 +10,8 @@ from website_detective import scan as _core_scan
 
 SCAN_BUDGET_S = int(os.environ.get("DETECTIVE_SCAN_BUDGET") or "55")
 _local = threading.local()
+_cancel_flags = {}
+_cancel_lock = threading.Lock()
 
 
 def _remaining():
@@ -17,6 +19,28 @@ def _remaining():
     if deadline is None:
         return None
     return deadline - time.monotonic()
+
+
+def _is_cancelled(cancel_id=None):
+    cid = cancel_id or getattr(_local, "cancel_id", None)
+    if not cid:
+        return False
+    with _cancel_lock:
+        return bool(_cancel_flags.get(cid))
+
+
+def _mark_cancelled(cancel_id: str):
+    if not cancel_id:
+        return
+    with _cancel_lock:
+        _cancel_flags[cancel_id] = True
+
+
+def _clear_cancel(cancel_id: str):
+    if not cancel_id:
+        return
+    with _cancel_lock:
+        _cancel_flags.pop(cancel_id, None)
 
 
 def _call_with_timeout(fn, seconds):
@@ -49,8 +73,8 @@ def _patch_slow_lookups():
 
             def whois_budget(domain, *args, **kwargs):
                 rem = _remaining()
-                if rem is not None and rem <= 0.5:
-                    raise TimeoutError("scan time budget exceeded")
+                if _is_cancelled() or (rem is not None and rem <= 0.5):
+                    raise TimeoutError("scan cancelled" if _is_cancelled() else "scan time budget exceeded")
                 limit = 15 if rem is None else min(15, rem)
                 return _call_with_timeout(orig, limit)(domain, *args, **kwargs)
 
@@ -65,7 +89,7 @@ def _patch_slow_lookups():
 
             def parse_budget(url, *args, **kwargs):
                 rem = _remaining()
-                if rem is not None and rem < 3:
+                if _is_cancelled() or (rem is not None and rem < 3):
                     return {}
                 limit = 8 if rem is None else min(8, rem)
                 return _call_with_timeout(orig, limit)(url, *args, **kwargs)
@@ -83,6 +107,8 @@ def _patch_requests_budget():
 
     def request(self, method, url, **kwargs):
         rem = _remaining()
+        if _is_cancelled():
+            raise requests.exceptions.Timeout("scan cancelled")
         if rem is not None:
             if rem <= 0.4:
                 raise requests.exceptions.Timeout("scan time budget exceeded")
@@ -123,13 +149,20 @@ def _stopped_report(url: str) -> dict:
     }
 
 
-def scan(url: str):
+def scan(url: str, cancel_id: str | None = None):
     box = {}
 
     def run():
         _local.deadline = time.monotonic() + SCAN_BUDGET_S
+        _local.cancel_id = cancel_id
         try:
+            if _is_cancelled():
+                box["r"] = {"error": "Scan cancelled.", "url": url, "cancelled": True}
+                return
             result = _core_scan(url)
+            if _is_cancelled():
+                box["r"] = {"error": "Scan cancelled.", "url": url, "cancelled": True}
+                return
             if isinstance(result, dict) and not result.get("markdown"):
                 if (_remaining() or 0) > 1:
                     result = enhance(result)
@@ -141,7 +174,11 @@ def scan(url: str):
 
     thread = threading.Thread(target=run, daemon=True)
     thread.start()
-    thread.join(SCAN_BUDGET_S + 2)
+    deadline = time.monotonic() + SCAN_BUDGET_S + 2
+    while thread.is_alive() and time.monotonic() < deadline:
+        if _is_cancelled(cancel_id):
+            return {"error": "Scan cancelled.", "url": url, "cancelled": True}
+        thread.join(0.25)
     if thread.is_alive() or "r" not in box:
         return _stopped_report(url)
     result = box["r"]
@@ -194,16 +231,26 @@ def health():
     return jsonify(status="ok", release=APP_RELEASE)
 
 
+@app.post("/cancel")
+def cancel_scan():
+    cid = (request.form.get("id") or "").strip()[:64]
+    _mark_cancelled(cid)
+    return jsonify(ok=True)
+
+
 @app.route("/", methods=["GET", "POST"])
 def index():
     result = None
-    url = ""
-    if request.method == "POST":
-        url = (request.form.get("url") or "").strip()
+    url = (request.values.get("url") or "").strip()
+    cancel_id = (request.values.get("cancel") or "").strip()[:64] or None
+    if request.method == "POST" or url:
         if not url:
             result = {"error": "Enter a website to analyze.", "url": ""}
         else:
-            result = scan(url)
+            try:
+                result = scan(url, cancel_id=cancel_id)
+            finally:
+                _clear_cancel(cancel_id or "")
     return render_template(
         "index.html",
         result=result,
