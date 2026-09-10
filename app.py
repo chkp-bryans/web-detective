@@ -133,16 +133,11 @@ def _patch_slow_lookups():
     try:
         import builtwith as builtwith_mod
         if not getattr(builtwith_mod, "_wd_timed", False):
-            orig = builtwith_mod.parse
 
             def parse_budget(url, *args, **kwargs):
-                rem = _remaining()
-                if _is_cancelled() or (rem is not None and rem < 3):
-                    _job_log("Skipping BuiltWith (budget)")
-                    return {}
-                _job_log("Fingerprinting technologies")
-                limit = 8 if rem is None else min(8, rem)
-                return _call_with_timeout(orig, limit)(url, *args, **kwargs)
+                # urllib + huge regex DB; hangs on 30x/WAF sites (e.g. ifaw.org). Skip.
+                _job_log("Skipping BuiltWith (hangs on some redirects/WAF)")
+                return {}
 
             builtwith_mod.parse = parse_budget
             builtwith_mod._wd_timed = True
@@ -246,22 +241,38 @@ def _scan_inner(url: str, cancel_id: str | None = None) -> dict:
 
 
 def _run_job(jid: str, url: str):
-    _local.job_id = jid
-    try:
-        result = _scan_inner(url, cancel_id=jid)
-        status = "cancelled" if result.get("cancelled") else "done"
-        data = _read_job(jid) or {"id": jid, "url": url, "logs": []}
-        data["status"] = status
-        data["result"] = result
+    box = {}
+
+    def run():
+        _local.job_id = jid
+        try:
+            box["r"] = _scan_inner(url, cancel_id=jid)
+        except Exception as exc:
+            box["e"] = exc
+
+    thread = threading.Thread(target=run, daemon=True)
+    thread.start()
+    thread.join(SCAN_BUDGET_S + 2)
+    data = _read_job(jid) or {"id": jid, "url": url, "logs": []}
+    if thread.is_alive():
+        _mark_cancelled(jid)
+        _local.job_id = jid
+        _job_log("Giving up — a step hung (often redirects or fingerprinting)")
+        data = _read_job(jid) or data
+        data["status"] = "done"
+        data["result"] = _stopped_report(url)
         _write_job(jid, data)
-    except Exception as exc:
-        _job_log(f"Failed: {exc}")
-        data = _read_job(jid) or {"id": jid, "url": url, "logs": []}
-        data["status"] = "error"
-        data["result"] = {"error": str(exc), "url": url}
-        _write_job(jid, data)
-    finally:
         _clear_cancel(jid)
+        return
+    if "e" in box:
+        data["status"] = "error"
+        data["result"] = {"error": str(box["e"]), "url": url}
+    else:
+        result = box.get("r") or _stopped_report(url)
+        data["status"] = "cancelled" if result.get("cancelled") else "done"
+        data["result"] = result
+    _write_job(jid, data)
+    _clear_cancel(jid)
 
 
 def scan(url: str, cancel_id: str | None = None):
@@ -290,7 +301,7 @@ AUTH_USER = os.environ.get("BASIC_AUTH_USER", "")
 AUTH_PASSWORD = os.environ.get("BASIC_AUTH_PASSWORD", "")
 ALLOW_UNAUTHENTICATED = os.environ.get("DETECTIVE_ALLOW_UNAUTHENTICATED", "") == "1"
 WAFBUDDY_URL = os.environ.get("WAFBUDDY_URL", "https://wafbuddy.csadocs.com")
-APP_RELEASE = os.environ.get("RELEASE") or os.environ.get("APP_RELEASE") or "1.1.0"
+APP_RELEASE = os.environ.get("RELEASE") or os.environ.get("APP_RELEASE") or "1.2.0"
 
 
 def _authorized() -> bool:
