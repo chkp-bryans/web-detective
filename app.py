@@ -1,7 +1,12 @@
 import hmac
+import json
 import os
+import re
+import socket
 import threading
 import time
+import uuid
+from pathlib import Path
 
 import requests
 from flask import Flask, Response, jsonify, render_template, request
@@ -9,9 +14,11 @@ from flask import Flask, Response, jsonify, render_template, request
 from website_detective import scan as _core_scan
 
 SCAN_BUDGET_S = int(os.environ.get("DETECTIVE_SCAN_BUDGET") or "55")
+JOB_DIR = Path(os.environ.get("DETECTIVE_JOB_DIR") or "/tmp/wd-jobs")
 _local = threading.local()
 _cancel_flags = {}
 _cancel_lock = threading.Lock()
+_JOB_ID_RE = re.compile(r"^[a-fA-F0-9-]{8,64}$")
 
 
 def _remaining():
@@ -41,6 +48,46 @@ def _clear_cancel(cancel_id: str):
         return
     with _cancel_lock:
         _cancel_flags.pop(cancel_id, None)
+
+
+def _safe_job_id(raw: str | None):
+    value = (raw or "").strip()
+    if not _JOB_ID_RE.match(value):
+        return None
+    return value
+
+
+def _job_path(jid: str) -> Path:
+    return JOB_DIR / f"{jid}.json"
+
+
+def _read_job(jid: str):
+    path = _job_path(jid)
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+
+
+def _write_job(jid: str, data: dict):
+    JOB_DIR.mkdir(parents=True, exist_ok=True)
+    path = _job_path(jid)
+    tmp = path.with_suffix(".tmp")
+    tmp.write_text(json.dumps(data, default=str), encoding="utf-8")
+    tmp.replace(path)
+
+
+def _job_log(message: str):
+    jid = getattr(_local, "job_id", None)
+    if not jid:
+        return
+    data = _read_job(jid) or {"id": jid, "logs": [], "status": "running"}
+    logs = data.setdefault("logs", [])
+    logs.append(message)
+    if len(logs) > 80:
+        del logs[:-80]
+    data["step"] = message
+    _write_job(jid, data)
 
 
 def _call_with_timeout(fn, seconds):
@@ -75,7 +122,8 @@ def _patch_slow_lookups():
                 rem = _remaining()
                 if _is_cancelled() or (rem is not None and rem <= 0.5):
                     raise TimeoutError("scan cancelled" if _is_cancelled() else "scan time budget exceeded")
-                limit = 15 if rem is None else min(15, rem)
+                _job_log(f"WHOIS {domain}")
+                limit = 12 if rem is None else min(12, rem)
                 return _call_with_timeout(orig, limit)(domain, *args, **kwargs)
 
             whois_mod.whois = whois_budget
@@ -90,7 +138,9 @@ def _patch_slow_lookups():
             def parse_budget(url, *args, **kwargs):
                 rem = _remaining()
                 if _is_cancelled() or (rem is not None and rem < 3):
+                    _job_log("Skipping BuiltWith (budget)")
                     return {}
+                _job_log("Fingerprinting technologies")
                 limit = 8 if rem is None else min(8, rem)
                 return _call_with_timeout(orig, limit)(url, *args, **kwargs)
 
@@ -112,7 +162,7 @@ def _patch_requests_budget():
         if rem is not None:
             if rem <= 0.4:
                 raise requests.exceptions.Timeout("scan time budget exceeded")
-            cap = max(0.5, rem)
+            cap = max(0.5, min(8.0, rem))
             existing = kwargs.get("timeout")
             if existing is None:
                 kwargs["timeout"] = cap
@@ -120,7 +170,26 @@ def _patch_requests_budget():
                 kwargs["timeout"] = min(float(existing), cap)
             elif isinstance(existing, tuple) and len(existing) == 2:
                 kwargs["timeout"] = (min(float(existing[0]), cap), min(float(existing[1]), cap))
-        return orig(self, method, url, **kwargs)
+        _job_log(f"{method.upper()} {url}")
+        resp = orig(self, method, url, **kwargs)
+        code = getattr(resp, "status_code", None)
+        loc = ""
+        try:
+            loc = resp.headers.get("Location") or ""
+        except Exception:
+            pass
+        if loc:
+            _job_log(f"HTTP {code} redirect -> {loc}")
+        else:
+            _job_log(f"HTTP {code}")
+        if code in (304, 204, 205):
+            try:
+                resp._content = b""
+                resp._content_consumed = True
+                resp.close()
+            except Exception:
+                pass
+        return resp
 
     request._wd_budget = True
     requests.sessions.Session.request = request
@@ -149,26 +218,58 @@ def _stopped_report(url: str) -> dict:
     }
 
 
+def _scan_inner(url: str, cancel_id: str | None = None) -> dict:
+    _local.deadline = time.monotonic() + SCAN_BUDGET_S
+    _local.cancel_id = cancel_id
+    previous_timeout = socket.getdefaulttimeout()
+    socket.setdefaulttimeout(8)
+    try:
+        if _is_cancelled():
+            return {"error": "Scan cancelled.", "url": url, "cancelled": True}
+        _job_log(f"Starting {url}")
+        result = _core_scan(url)
+        if _is_cancelled():
+            return {"error": "Scan cancelled.", "url": url, "cancelled": True}
+        if isinstance(result, dict) and not result.get("markdown"):
+            if (_remaining() or 0) > 1:
+                _job_log("Building extras (timing, markdown)")
+                result = enhance(result)
+            else:
+                result["truncated"] = True
+                _job_log("Stopped extras to stay under the time budget")
+        _job_log("Done")
+        if isinstance(result, dict):
+            result.setdefault("budget_s", SCAN_BUDGET_S)
+        return result
+    finally:
+        socket.setdefaulttimeout(previous_timeout)
+
+
+def _run_job(jid: str, url: str):
+    _local.job_id = jid
+    try:
+        result = _scan_inner(url, cancel_id=jid)
+        status = "cancelled" if result.get("cancelled") else "done"
+        data = _read_job(jid) or {"id": jid, "url": url, "logs": []}
+        data["status"] = status
+        data["result"] = result
+        _write_job(jid, data)
+    except Exception as exc:
+        _job_log(f"Failed: {exc}")
+        data = _read_job(jid) or {"id": jid, "url": url, "logs": []}
+        data["status"] = "error"
+        data["result"] = {"error": str(exc), "url": url}
+        _write_job(jid, data)
+    finally:
+        _clear_cancel(jid)
+
+
 def scan(url: str, cancel_id: str | None = None):
     box = {}
 
     def run():
-        _local.deadline = time.monotonic() + SCAN_BUDGET_S
-        _local.cancel_id = cancel_id
         try:
-            if _is_cancelled():
-                box["r"] = {"error": "Scan cancelled.", "url": url, "cancelled": True}
-                return
-            result = _core_scan(url)
-            if _is_cancelled():
-                box["r"] = {"error": "Scan cancelled.", "url": url, "cancelled": True}
-                return
-            if isinstance(result, dict) and not result.get("markdown"):
-                if (_remaining() or 0) > 1:
-                    result = enhance(result)
-                else:
-                    result["truncated"] = True
-            box["r"] = result
+            box["r"] = _scan_inner(url, cancel_id=cancel_id)
         except Exception as exc:
             box["e"] = exc
 
@@ -181,10 +282,7 @@ def scan(url: str, cancel_id: str | None = None):
         thread.join(0.25)
     if thread.is_alive() or "r" not in box:
         return _stopped_report(url)
-    result = box["r"]
-    if isinstance(result, dict):
-        result.setdefault("budget_s", SCAN_BUDGET_S)
-    return result
+    return box["r"]
 
 app = Flask(__name__)
 
@@ -233,17 +331,55 @@ def health():
 
 @app.post("/cancel")
 def cancel_scan():
-    cid = (request.form.get("id") or "").strip()[:64]
-    _mark_cancelled(cid)
+    cid = _safe_job_id(request.form.get("id") or request.values.get("id"))
+    _mark_cancelled(cid or "")
+    if cid:
+        data = _read_job(cid)
+        if data and data.get("status") == "running":
+            data["status"] = "cancelled"
+            _write_job(cid, data)
     return jsonify(ok=True)
+
+
+@app.post("/scan/start")
+def scan_start():
+    url = (request.form.get("url") or "").strip()
+    if not url:
+        return jsonify(error="Enter a website to analyze."), 400
+    jid = str(uuid.uuid4())
+    _write_job(jid, {"id": jid, "url": url, "status": "running", "logs": [f"Queued {url}"]})
+    threading.Thread(target=_run_job, args=(jid, url), daemon=True).start()
+    return jsonify(id=jid, url=url, budget=SCAN_BUDGET_S)
+
+
+@app.get("/scan/status/<jid>")
+def scan_status(jid):
+    safe = _safe_job_id(jid)
+    data = _read_job(safe) if safe else None
+    if not data:
+        return jsonify(error="unknown job"), 404
+    return jsonify(
+        id=data.get("id"),
+        url=data.get("url"),
+        status=data.get("status"),
+        logs=data.get("logs") or [],
+        step=data.get("step") or "",
+        done=data.get("status") in {"done", "error", "cancelled"},
+    )
 
 
 @app.route("/", methods=["GET", "POST"])
 def index():
     result = None
     url = (request.values.get("url") or "").strip()
-    cancel_id = (request.values.get("cancel") or "").strip()[:64] or None
-    if request.method == "POST" or url:
+    cancel_id = _safe_job_id(request.values.get("cancel"))
+    job_id = _safe_job_id(request.values.get("job"))
+    if job_id:
+        data = _read_job(job_id) or {}
+        url = data.get("url") or url
+        if data.get("status") in {"done", "error", "cancelled"} and data.get("result"):
+            result = data["result"]
+    elif request.method == "POST" or url:
         if not url:
             result = {"error": "Enter a website to analyze.", "url": ""}
         else:
@@ -258,6 +394,7 @@ def index():
         wafbuddy_url=WAFBUDDY_URL,
         release=APP_RELEASE,
         scan_budget=SCAN_BUDGET_S,
+        job_id=job_id,
     )
 
 
