@@ -1,6 +1,6 @@
 # Website Detective
 
-Passive reconnaissance for a domain: HTTP headers, DNS (including Check Point WAF `i2.checkpoint.com` CNAMEs), CDN / load balancer / WAF fingerprints, third-party links, WHOIS, SSL, BuiltWith, a live security-header audit, and basic timing from the scanner host.
+Passive reconnaissance for a domain: HTTP headers, DNS (including Check Point WAF `i2.checkpoint.com` CNAMEs), CDN / load balancer / WAF fingerprints, third-party links, WHOIS, SSL, a live security-header audit, and basic timing from the scanner host. BuiltWith fingerprinting is skipped — its urllib client hangs for minutes on some redirect/WAF sites (for example ifaw.org).
 
 Intended for authorized Check Point WAF reviews. It does **not** probe or exploit targets.
 
@@ -19,7 +19,8 @@ After a scan:
 Optional env:
 
 - `WAFBUDDY_URL` (default `https://wafbuddy.csadocs.com`) if you need to override the WAFBuddy link.
-- `RELEASE` (default `1.1.0`) shown in the footer, copied markdown, and `GET /health`.
+- `RELEASE` (default `1.2.0`) shown in the footer, copied markdown, and `GET /health`. If Dokploy still has `RELEASE=1.1.0`, update it.
+- `DETECTIVE_SCAN_BUDGET` (default `55`) seconds. Lookups stop so the page returns before Traefik/gunicorn give a Bad Gateway. Raise this only if the proxy read timeout is higher.
 
 CLI markdown:
 
@@ -69,7 +70,7 @@ docker run --rm -p 8000:8000 \
    BASIC_AUTH_USER=detective
    BASIC_AUTH_PASSWORD=<strong password>
    WAFBUDDY_URL=https://wafbuddy.csadocs.com
-   RELEASE=1.1.0
+   RELEASE=1.2.0
    ```
 
    Do not commit the password. `WAFBUDDY_URL` is optional (`https://wafbuddy.csadocs.com` is the default). If Dokploy still has the old GitHub URL set, change or remove it, then redeploy.
@@ -78,9 +79,9 @@ docker run --rm -p 8000:8000 \
 
 Without `BASIC_AUTH_USER` / `BASIC_AUTH_PASSWORD` the scanner returns **503** (locked). `/health` stays open for Dokploy.
 
-Health check: `GET /health` → `{"status":"ok","release":"1.1.0"}`.
+Health check: `GET /health` → `{"status":"ok","release":"1.2.0"}`.
 
-Scans can take up to ~90s (WHOIS / BuiltWith), plus two short TTFB samples. Gunicorn timeout is 120s; keep Traefik’s read timeout at least that high.
+Scans are capped at ~55s (`DETECTIVE_SCAN_BUDGET`). Extra timing does not re-download the page body. Gunicorn timeout is 120s; keep Traefik’s read timeout at least that high. If a lookup hangs (redirects, fingerprinting), the job watchdog stops the scan instead of leaving the overlay stuck.
 
 Tests:
 
