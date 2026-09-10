@@ -13,13 +13,14 @@ After a scan:
 - **Copy markdown** / **Download .md** — paste-ready report for tickets and notes. Optional ticket, customer, and notes fields are prepended locally and never sent back to the server.
 - **Print / Save PDF** — browser print dialog; the form and toolbar are hidden.
 - **Save as baseline** — stores this hostname’s report in *this browser only*. Scan again later and **Compare** for a Check Point WAF / CNAME / IP / header / TTFB diff. Replace or clear when you want. Clearing site data removes baselines.
-- **Performance** — DNS, Connect+TLS, TTFB (median of up to 3 samples), body size, and redirect hops. These numbers are from the **scanner host**, not from the customer’s users. Treat TTFB deltas under ~50 ms or ~15% as directional noise.
+- **Performance** — DNS, Connect+TLS, TTFB, body size, and redirect hops, each graded **good / ok / slow** for this scanner host (not CrUX / end users). Compare before/after on the same scanner. Treat TTFB deltas under ~50 ms or ~15% as noise.
+- **CDN / WAF / load balancer** — vendor plus *why this scan matched* (header, DNS CNAME/NS, or IP org). Cloudflare CDN vs WAF share CF-RAY; that is not proof the WAF feature is on. Check Point WAF is confirmed by an `i2.checkpoint.com` CNAME.
 - **Copy curl** — a `curl -w` timing probe the customer can run. Paste that output into [WAFBuddy](https://wafbuddy.csadocs.com) when the question is browser-path (cache, 403/429, login, p95). Detective does not ingest HARs.
 
 Optional env:
 
 - `WAFBUDDY_URL` (default `https://wafbuddy.csadocs.com`) if you need to override the WAFBuddy link.
-- `RELEASE` (default `1.2.0`) shown in the footer, copied markdown, and `GET /health`. If Dokploy still has `RELEASE=1.1.0`, update it.
+- `RELEASE` (default `1.2.1`) shown in the footer, copied markdown, and `GET /health`. If Dokploy still has an older `RELEASE`, update it.
 - `DETECTIVE_SCAN_BUDGET` (default `55`) seconds. Lookups stop so the page returns before Traefik/gunicorn give a Bad Gateway. Raise this only if the proxy read timeout is higher.
 
 CLI markdown:
@@ -70,7 +71,7 @@ docker run --rm -p 8000:8000 \
    BASIC_AUTH_USER=detective
    BASIC_AUTH_PASSWORD=<strong password>
    WAFBUDDY_URL=https://wafbuddy.csadocs.com
-   RELEASE=1.2.0
+   RELEASE=1.2.1
    ```
 
    Do not commit the password. `WAFBUDDY_URL` is optional (`https://wafbuddy.csadocs.com` is the default). If Dokploy still has the old GitHub URL set, change or remove it, then redeploy.
@@ -79,7 +80,7 @@ docker run --rm -p 8000:8000 \
 
 Without `BASIC_AUTH_USER` / `BASIC_AUTH_PASSWORD` the scanner returns **503** (locked). `/health` stays open for Dokploy.
 
-Health check: `GET /health` → `{"status":"ok","release":"1.2.0"}`.
+Health check: `GET /health` → `{"status":"ok","release":"1.2.1"}`.
 
 Scans are capped at ~55s (`DETECTIVE_SCAN_BUDGET`). Extra timing does not re-download the page body. Gunicorn timeout is 120s; keep Traefik’s read timeout at least that high. If a lookup hangs (redirects, fingerprinting), the job watchdog stops the scan instead of leaving the overlay stuck.
 
