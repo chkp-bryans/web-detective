@@ -18,7 +18,7 @@ from website_detective import (
     assert_url_allowed,
 )
 
-APP_RELEASE = os.environ.get("RELEASE") or os.environ.get("APP_RELEASE") or "1.1.0"
+APP_RELEASE = os.environ.get("RELEASE") or os.environ.get("APP_RELEASE") or "1.2.0"
 SAMPLE_TIMEOUT = 5
 SSL_EXPIRY_DAYS = 30
 REPORT_SECTIONS = [
