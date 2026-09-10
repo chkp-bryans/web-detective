@@ -17,8 +17,9 @@ from website_detective import (
     USER_AGENT,
     assert_url_allowed,
 )
+from website_detective_explain import explain_vendors, format_performance
 
-APP_RELEASE = os.environ.get("RELEASE") or os.environ.get("APP_RELEASE") or "1.2.0"
+APP_RELEASE = os.environ.get("RELEASE") or os.environ.get("APP_RELEASE") or "1.2.1"
 SAMPLE_TIMEOUT = 5
 SSL_EXPIRY_DAYS = 30
 REPORT_SECTIONS = [
@@ -100,45 +101,6 @@ def curl_timing_command(url: str) -> str:
         "ttfb %{time_starttransfer}s | total %{time_total}s | code %{http_code}\\n' "
         f'"{safe}"'
     )
-
-
-def format_performance(report: dict) -> str:
-    hops = report.get("perf_redirects") or []
-    hop_count = max(0, len(hops) - 1)
-    samples = report.get("perf_ttfb_samples") or []
-    sample_note = "n/a"
-    if report.get("perf_ttfb_ms") is not None:
-        sample_note = _fmt_ms(report["perf_ttfb_ms"])
-        if len(samples) > 1:
-            sample_note += (
-                f"  (median of {len(samples)}; "
-                f"min {_fmt_ms(report.get('perf_ttfb_min_ms'))} / "
-                f"max {_fmt_ms(report.get('perf_ttfb_max_ms'))})"
-            )
-        elif len(samples) == 1:
-            sample_note += "  (1 sample)"
-    body_line = _fmt_ms(report.get("perf_body_ms"))
-    if report.get("perf_body_bytes") is not None:
-        body_line += f"   ({_fmt_bytes(report['perf_body_bytes'])})"
-    lines = [
-        "From scanner host (not end-user)",
-        "",
-        f"DNS           : {_fmt_ms(report.get('perf_dns_ms'))}",
-        f"Connect+TLS   : {_fmt_ms(report.get('perf_connect_ms'))}",
-        f"TTFB          : {sample_note}",
-        f"Body          : {body_line}",
-        f"Redirects     : {hop_count} hop" + ("s" if hop_count != 1 else ""),
-    ]
-    for hop in hops:
-        status = hop.get("status", "")
-        src = hop.get("url", "")
-        location = hop.get("location")
-        ttfb = _fmt_ms(hop.get("ttfb_ms"))
-        if location:
-            lines.append(f"  {status}  {src}  → {location}   {ttfb}")
-        else:
-            lines.append(f"  {status}  {src}   {ttfb}")
-    return "\n".join(lines)
 
 
 def sample_ttfb(url: str, extra: int = 0, timeout: int = SAMPLE_TIMEOUT):
@@ -326,6 +288,12 @@ def enhance(report: dict) -> dict:
         for key in ("waf", "summary", "smart"):
             if report.get(key):
                 report[key] = _checkpoint_waf_copy(report[key])
+        if not report.get("error"):
+            report["cdn"] = explain_vendors(report, report.get("cdn") or "", "cdn")
+            report["waf"] = explain_vendors(report, report.get("waf") or "", "waf")
+            report["load_balancer"] = explain_vendors(
+                report, report.get("load_balancer") or "", "lb"
+            )
         expiring, expires_on = parse_ssl_expiry(ssl_text=report.get("ssl") or "")
         report["ssl_expiring"] = expiring
         report["ssl_expires_on"] = expires_on
