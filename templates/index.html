@@ -301,7 +301,9 @@
     const WAFBUDDY_URL = {{ wafbuddy_url|tojson }};
     const APP_RELEASE = {{ release|tojson }};
     const SCAN_BUDGET = {{ scan_budget|tojson }};
+    const SCAN_JOB = {{ job_id|tojson }};
     </script>
     <script src="{{ url_for('static', filename='detective.js') }}"></script>
+    <script src="{{ url_for('static', filename='scan-ui.js') }}"></script>
 </body>
 </html>
