@@ -144,14 +144,27 @@
         .curl-row pre { flex: 1; }
         footer { padding: 16px 40px 28px; color: #94a3b8; font-size: 13px; text-align: center; }
         footer a { color: #1e40af; }
+        .help { padding: 8px 40px 12px; color: #334155; font-size: 14.5px; line-height: 1.55; }
+        .help h2 { color: #1e40af; font-size: 1.05rem; margin: 18px 0 8px; }
+        .help p { margin: 0 0 10px; }
+        .help ul { margin: 0 0 12px; padding-left: 20px; }
+        .help li { margin: 5px 0; }
+        details.help-box {
+            margin: 16px 40px 8px;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 8px 16px 12px;
+            background: #f8fafc;
+        }
+        details.help-box > summary { cursor: pointer; font-weight: 600; color: #1e40af; padding: 8px 0; }
         .sr-only { position: absolute; left: -9999px; }
         @media (max-width: 700px) {
             .meta-row { grid-template-columns: 1fr; }
-            .form-wrap, .section, .toolbar, .meta-row { padding-left: 20px; padding-right: 20px; }
+            .form-wrap, .section, .toolbar, .meta-row, .help, details.help-box { padding-left: 20px; padding-right: 20px; }
         }
         @media print {
             body { background: white; padding: 0; color: #000; }
-            .form-wrap, .toolbar, .meta-row, .no-print, .banner-actions, .compare-actions, .section-actions, .curl-row button { display: none !important; }
+            .form-wrap, .toolbar, .meta-row, .no-print, .banner-actions, .compare-actions, .section-actions, .curl-row button, details.help-box { display: none !important; }
             .container { box-shadow: none; border-radius: 0; }
             .section { break-inside: avoid; page-break-inside: avoid; }
             pre { background: #f8fafc !important; color: #0f172a !important; }
@@ -167,7 +180,7 @@
         </header>
         <div class="form-wrap">
             <form method="get" action="/">
-                <input type="text" name="url" placeholder="hmshelpdesk.hmsracing.com" value="{{ url }}" required autocomplete="off">
+                <input type="text" name="url" placeholder="checkpoint.com" value="{{ url }}" required autocomplete="off">
                 <input type="text" name="via" placeholder="Pre-cutover connect via (optional) — e.g. site.uuid.i2.checkpoint.com" value="{{ via or '' }}" autocomplete="off">
                 <button type="submit">Analyze website</button>
             </form>
@@ -177,7 +190,7 @@
         {% if result %}
             {% if result.error %}
                 <div class="error">{{ result.error }}</div>
-                <footer>Release {{ release }}</footer>
+                <footer>Release {{ release }} · <a href="https://github.com/chkp-bryans/web-detective" target="_blank" rel="noopener">GitHub</a></footer>
             {% else %}
                 {% if result.host_via %}
                     <div class="banner banner-info">Pre-cutover: connected to {{ result.host_via.via }}{% if result.host_via.via_ips %} ({{ result.host_via.via_ips[:4]|join(', ') }}){% endif %}. Host/TLS name stayed {{ result.host_via.host }}. Public DNS below is still the origin.</div>
@@ -294,16 +307,50 @@
                     <h2>Check Point WAF summary</h2>
                     <pre>{{ result.summary }}</pre>
                 </div>
+                <details class="help-box no-print">
+                    <summary>How to read this report</summary>
+                    <div class="help" style="padding: 0;">
+                        <ul>
+                            <li><strong>Performance</strong> is from this scanner host, not the customer’s browsers. good / ok / slow is for this vantage point; compare before/after here.</li>
+                            <li><strong>Pre-cutover connect</strong> means TCP went to the via CNAME/IP while Host and TLS stayed on the site name. Public DNS below is still the current origin.</li>
+                            <li><strong>DNS / IP</strong> are public records. Use them to see origin vs WAF before a cutover.</li>
+                            <li><strong>CDN / WAF / load balancer</strong> list the vendor plus the header, CNAME, or IP org that matched. Cloudflare CDN and WAF often share CF-RAY — that is not proof the WAF feature is on. Check Point WAF is confirmed by an <code>i2.checkpoint.com</code> CNAME.</li>
+                            <li><strong>SSL</strong> is the certificate presented for this Host/SNI. A banner appears if it expires within 30 days.</li>
+                            <li><strong>Security headers</strong> are read from the live response (HSTS, CSP, and so on).</li>
+                            <li><strong>Copy markdown / baseline</strong> stay in this browser. Ticket, customer, and notes are never sent back to the server.</li>
+                        </ul>
+                    </div>
+                </details>
                 <footer>
                     Scanned {{ result.scanned_at }}
                     · Release {{ release }}
                     · <a href="{{ wafbuddy_url }}" target="_blank" rel="noopener">WAFBuddy</a> for HAR before/after
+                    · <a href="https://github.com/chkp-bryans/web-detective" target="_blank" rel="noopener">GitHub</a>
                 </footer>
             {% endif %}
         {% else %}
+            <div class="help no-print">
+                <h2>How to scan</h2>
+                <p>Enter a hostname or URL and click Analyze. The scanner does a passive GET plus DNS, WHOIS, and TLS from this host. It does not probe or exploit the target.</p>
+                <ul>
+                    <li><strong>Site</strong> — the name browsers will use (Host header and TLS SNI), for example <code>checkpoint.com</code>.</li>
+                    <li><strong>Pre-cutover connect via</strong> — optional. Same idea as a hosts-file entry or <code>curl --connect-to</code>: TCP goes to that CNAME/IP (usually the Check Point <code>….i2.checkpoint.com</code> name) while Host/TLS stay on the site. Use this before the customer changes public DNS. The via name must resolve to a public IP.</li>
+                    <li>Timing is from this scanner, not end users. Save a baseline, scan again later, and Compare for a Check Point / CNAME / IP / header / TTFB diff.</li>
+                    <li>For browser-path questions (cache, 403/429, login, p95), capture a HAR and open WAFBuddy.</li>
+                </ul>
+                <h2>How to read a report</h2>
+                <ul>
+                    <li><strong>Performance</strong> — DNS, Connect+TLS, TTFB, and redirects, graded good / ok / slow for this scanner. Treat TTFB deltas under ~50 ms or ~15% as noise.</li>
+                    <li><strong>DNS / IP</strong> — public records. With connect-via, these still show the current origin; HTTP/TLS in the scan used the via path.</li>
+                    <li><strong>CDN / WAF / load balancer</strong> — vendor plus why this scan matched (header, CNAME, or IP org). Cloudflare CDN vs WAF share CF-RAY. Check Point WAF is confirmed by <code>i2.checkpoint.com</code>.</li>
+                    <li><strong>SSL / security headers</strong> — certificate and live response headers. Missing HSTS/CSP/etc. show up here.</li>
+                    <li><strong>Copy markdown</strong> is for tickets. Optional ticket/customer/notes stay in this browser only.</li>
+                </ul>
+            </div>
             <footer>
                 Release {{ release }}
                 · Adjacent tool: <a href="{{ wafbuddy_url }}" target="_blank" rel="noopener">WAFBuddy</a> (HAR / migration workbench)
+                · <a href="https://github.com/chkp-bryans/web-detective" target="_blank" rel="noopener">GitHub</a>
             </footer>
         {% endif %}
     </div>
