@@ -19,11 +19,12 @@ from website_detective import (
 )
 from website_detective_explain import explain_vendors, format_performance
 
-APP_RELEASE = os.environ.get("RELEASE") or os.environ.get("APP_RELEASE") or "1.2.1"
+APP_RELEASE = os.environ.get("RELEASE") or os.environ.get("APP_RELEASE") or "1.2.2"
 SAMPLE_TIMEOUT = 5
 SSL_EXPIRY_DAYS = 30
 REPORT_SECTIONS = [
     ("Performance", "perf"),
+    ("Pre-cutover connect", "host_via_text"),
     ("Connection", "performance"),
     ("Important headers", "headers"),
     ("DNS records", "dns_full"),
@@ -92,11 +93,16 @@ def parse_ssl_expiry(cert=None, now=None, ssl_text=""):
     return expiry <= current + timedelta(days=SSL_EXPIRY_DAYS), expiry.strftime("%Y-%m-%d")
 
 
-def curl_timing_command(url: str) -> str:
+def curl_timing_command(url: str, via=None) -> str:
     """Single-line bash probe. curl -w times are seconds, cumulative from start."""
     safe = (url or "").replace('"', '\\"')
+    connect = ""
+    if isinstance(via, dict) and via.get("host") and via.get("via"):
+        connect = f"--connect-to {via['host']}:443:{via['via']}:443 "
     return (
-        "curl -sS -o /dev/null -L -w "
+        "curl -sS -o /dev/null -L "
+        + connect
+        + "-w "
         "'dns %{time_namelookup}s | tcp %{time_connect}s | tls %{time_appconnect}s | "
         "ttfb %{time_starttransfer}s | total %{time_total}s | code %{http_code}\\n' "
         f'"{safe}"'
@@ -247,8 +253,10 @@ def to_markdown(report: dict, meta=None) -> str:
         quoted = "\n".join(f"> {n}" if n else ">" for n in notes.splitlines())
         lines.extend(["", quoted])
     for title, key in REPORT_SECTIONS:
-        body = report.get(key) or "N/A"
-        lines.extend(["", f"## {title}", "", "```", str(body).rstrip(), "```"])
+        body = report.get(key) or ""
+        if key == "host_via_text" and not str(body).strip():
+            continue
+        lines.extend(["", f"## {title}", "", "```", str(body).rstrip() or "N/A", "```"])
     lines.extend([
         "",
         "## Next step",
@@ -257,7 +265,7 @@ def to_markdown(report: dict, meta=None) -> str:
         "For browser-path questions (cache, 403/429, login, p95), capture a before/after HAR and open WAFBuddy.",
         "",
     ])
-    curl = report.get("curl_timing") or curl_timing_command(report.get("url") or "")
+    curl = report.get("curl_timing") or curl_timing_command(report.get("url") or "", via=report.get("host_via"))
     if curl:
         lines.extend(["Customer-side timing probe:", "", "```bash", curl, "```", ""])
     return "\n".join(lines)
@@ -289,6 +297,18 @@ def enhance(report: dict) -> dict:
             if report.get(key):
                 report[key] = _checkpoint_waf_copy(report[key])
         if not report.get("error"):
+            via_info = report.get("host_via")
+            if via_info and not report.get("host_via_text"):
+                from website_detective_via import format_override
+                report["host_via_text"] = format_override(via_info)
+            if via_info and via_info.get("checkpoint"):
+                extra = (
+                    "Pre-cutover connect-via "
+                    f"{via_info.get('via')} (i2.checkpoint.com). "
+                    "Public DNS CNAME is not necessarily cut over yet."
+                )
+                waf = (report.get("waf") or "").strip()
+                report["waf"] = (waf + "\n" if waf else "") + extra
             report["cdn"] = explain_vendors(report, report.get("cdn") or "", "cdn")
             report["waf"] = explain_vendors(report, report.get("waf") or "", "waf")
             report["load_balancer"] = explain_vendors(
@@ -314,7 +334,9 @@ def enhance(report: dict) -> dict:
                 if report.get(key) in (None, "", []):
                     report[key] = value
         final_url = report.get("url") or url
-        report["curl_timing"] = report.get("curl_timing") or curl_timing_command(final_url)
+        report["curl_timing"] = report.get("curl_timing") or curl_timing_command(
+            final_url, via=report.get("host_via")
+        )
         report.setdefault("perf_redirects", [])
         report["perf"] = format_performance(report)
         report["markdown"] = to_markdown(report)
