@@ -12,6 +12,15 @@ import requests
 from flask import Flask, Response, jsonify, render_template, request
 
 from website_detective import scan as _core_scan
+from website_detective_via import (
+    clear_override,
+    format_override,
+    install_override,
+    patch_getaddrinfo,
+    prepare_override,
+)
+
+patch_getaddrinfo()
 
 SCAN_BUDGET_S = int(os.environ.get("DETECTIVE_SCAN_BUDGET") or "55")
 JOB_DIR = Path(os.environ.get("DETECTIVE_JOB_DIR") or "/tmp/wd-jobs")
@@ -213,18 +222,33 @@ def _stopped_report(url: str) -> dict:
     }
 
 
-def _scan_inner(url: str, cancel_id: str | None = None) -> dict:
+def _scan_inner(url: str, cancel_id: str | None = None, via: str | None = None) -> dict:
     _local.deadline = time.monotonic() + SCAN_BUDGET_S
     _local.cancel_id = cancel_id
     previous_timeout = socket.getdefaulttimeout()
     socket.setdefaulttimeout(8)
+    override = None
     try:
         if _is_cancelled():
             return {"error": "Scan cancelled.", "url": url, "cancelled": True}
+        if via:
+            try:
+                override = prepare_override(url, via)
+            except ValueError as exc:
+                return {"error": str(exc), "url": url}
+            if override:
+                install_override(override)
+                _job_log(
+                    f"Pre-cutover: {override['host']} Host/SNI, TCP via {override['via']} "
+                    f"({', '.join(override['via_ips'][:4])})"
+                )
         _job_log(f"Starting {url}")
         result = _core_scan(url)
         if _is_cancelled():
             return {"error": "Scan cancelled.", "url": url, "cancelled": True}
+        if isinstance(result, dict) and override:
+            result["host_via"] = override
+            result["host_via_text"] = format_override(override)
         if isinstance(result, dict) and not result.get("markdown"):
             if (_remaining() or 0) > 1:
                 _job_log("Building extras (timing, markdown)")
@@ -237,16 +261,17 @@ def _scan_inner(url: str, cancel_id: str | None = None) -> dict:
             result.setdefault("budget_s", SCAN_BUDGET_S)
         return result
     finally:
+        clear_override()
         socket.setdefaulttimeout(previous_timeout)
 
 
-def _run_job(jid: str, url: str):
+def _run_job(jid: str, url: str, via: str | None = None):
     box = {}
 
     def run():
         _local.job_id = jid
         try:
-            box["r"] = _scan_inner(url, cancel_id=jid)
+            box["r"] = _scan_inner(url, cancel_id=jid, via=via)
         except Exception as exc:
             box["e"] = exc
 
@@ -275,12 +300,12 @@ def _run_job(jid: str, url: str):
     _clear_cancel(jid)
 
 
-def scan(url: str, cancel_id: str | None = None):
+def scan(url: str, cancel_id: str | None = None, via: str | None = None):
     box = {}
 
     def run():
         try:
-            box["r"] = _scan_inner(url, cancel_id=cancel_id)
+            box["r"] = _scan_inner(url, cancel_id=cancel_id, via=via)
         except Exception as exc:
             box["e"] = exc
 
@@ -301,7 +326,7 @@ AUTH_USER = os.environ.get("BASIC_AUTH_USER", "")
 AUTH_PASSWORD = os.environ.get("BASIC_AUTH_PASSWORD", "")
 ALLOW_UNAUTHENTICATED = os.environ.get("DETECTIVE_ALLOW_UNAUTHENTICATED", "") == "1"
 WAFBUDDY_URL = os.environ.get("WAFBUDDY_URL", "https://wafbuddy.csadocs.com")
-APP_RELEASE = os.environ.get("RELEASE") or os.environ.get("APP_RELEASE") or "1.2.1"
+APP_RELEASE = os.environ.get("RELEASE") or os.environ.get("APP_RELEASE") or "1.2.2"
 
 
 def _authorized() -> bool:
@@ -355,12 +380,14 @@ def cancel_scan():
 @app.post("/scan/start")
 def scan_start():
     url = (request.form.get("url") or "").strip()
+    via = (request.form.get("via") or "").strip()
     if not url:
         return jsonify(error="Enter a website to analyze."), 400
     jid = str(uuid.uuid4())
-    _write_job(jid, {"id": jid, "url": url, "status": "running", "logs": [f"Queued {url}"]})
-    threading.Thread(target=_run_job, args=(jid, url), daemon=True).start()
-    return jsonify(id=jid, url=url, budget=SCAN_BUDGET_S)
+    queued = f"Queued {url}" + (f" via {via}" if via else "")
+    _write_job(jid, {"id": jid, "url": url, "via": via, "status": "running", "logs": [queued]})
+    threading.Thread(target=_run_job, args=(jid, url, via), daemon=True).start()
+    return jsonify(id=jid, url=url, via=via, budget=SCAN_BUDGET_S)
 
 
 @app.get("/scan/status/<jid>")
@@ -383,25 +410,29 @@ def scan_status(jid):
 def index():
     result = None
     url = (request.values.get("url") or "").strip()
+    via = (request.values.get("via") or "").strip()
     cancel_id = _safe_job_id(request.values.get("cancel"))
     job_id = _safe_job_id(request.values.get("job"))
     if job_id:
         data = _read_job(job_id) or {}
         url = data.get("url") or url
+        via = data.get("via") or via
         if data.get("status") in {"done", "error", "cancelled"} and data.get("result"):
             result = data["result"]
+            via = (result.get("host_via") or {}).get("via") or via
     elif request.method == "POST" or url:
         if not url:
             result = {"error": "Enter a website to analyze.", "url": ""}
         else:
             try:
-                result = scan(url, cancel_id=cancel_id)
+                result = scan(url, cancel_id=cancel_id, via=via)
             finally:
                 _clear_cancel(cancel_id or "")
     return render_template(
         "index.html",
         result=result,
         url=url,
+        via=via,
         wafbuddy_url=WAFBUDDY_URL,
         release=APP_RELEASE,
         scan_budget=SCAN_BUDGET_S,
