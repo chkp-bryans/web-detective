@@ -80,14 +80,17 @@ function bindForm() {
             .catch(function () {});
     }
 
-    function startJob(target) {
+    function startJob(target, via) {
         const body = new URLSearchParams();
         body.set("url", target);
+        if (via) body.set("via", via);
         fetch("/scan/start", { method: "POST", body: body, credentials: "same-origin" })
             .then(function (r) { return r.json(); })
             .then(function (data) {
                 if (!data.id) throw new Error(data.error || "start failed");
-                history.replaceState({}, "", "/?url=" + encodeURIComponent(target) + "&job=" + encodeURIComponent(data.id));
+                let loc = "/?url=" + encodeURIComponent(target) + "&job=" + encodeURIComponent(data.id);
+                if (via) loc += "&via=" + encodeURIComponent(via);
+                history.replaceState({}, "", loc);
                 const cancelBtn = document.getElementById("scan-cancel");
                 if (cancelBtn) {
                     cancelBtn.onclick = function () {
@@ -109,8 +112,10 @@ function bindForm() {
         ev.preventDefault();
         const target = (input.value || "").trim();
         if (!target) return;
+        const viaEl = form.querySelector("input[name='via']");
+        const via = viaEl ? (viaEl.value || "").trim() : "";
         showOverlay(target);
-        startJob(target);
+        startJob(target, via);
     });
 
     const hasResult = typeof SCAN !== "undefined" && SCAN && (SCAN.domain || SCAN.error);
