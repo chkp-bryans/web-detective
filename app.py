@@ -12,6 +12,7 @@ import requests
 from flask import Flask, Response, jsonify, render_template, request
 
 from website_detective import scan as _core_scan
+import website_detective as _wd
 from website_detective_via import (
     clear_override,
     format_override,
@@ -20,6 +21,18 @@ from website_detective_via import (
     prepare_override,
 )
 
+try:
+    from website_detective_detect import (
+        detect_cdn as _smart_cdn,
+        detect_load_balancer_and_proxy as _smart_lb,
+        detect_waf as _smart_waf,
+    )
+
+    _wd.detect_cdn = _smart_cdn
+    _wd.detect_load_balancer_and_proxy = _smart_lb
+    _wd.detect_waf = _smart_waf
+except Exception:
+    pass
 patch_getaddrinfo()
 
 SCAN_BUDGET_S = int(os.environ.get("DETECTIVE_SCAN_BUDGET") or "55")
@@ -326,7 +339,7 @@ AUTH_USER = os.environ.get("BASIC_AUTH_USER", "")
 AUTH_PASSWORD = os.environ.get("BASIC_AUTH_PASSWORD", "")
 ALLOW_UNAUTHENTICATED = os.environ.get("DETECTIVE_ALLOW_UNAUTHENTICATED", "") == "1"
 WAFBUDDY_URL = os.environ.get("WAFBUDDY_URL", "https://wafbuddy.csadocs.com")
-APP_RELEASE = os.environ.get("RELEASE") or os.environ.get("APP_RELEASE") or "1.2.3"
+APP_RELEASE = os.environ.get("RELEASE") or os.environ.get("APP_RELEASE") or "1.2.4"
 
 
 def _authorized() -> bool:
