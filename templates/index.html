@@ -40,6 +40,7 @@
             border-radius: 8px;
             font-family: inherit;
         }
+        input[name="via"] { flex: 1 1 100%; font-size: 14px; }
         button, .btn-link {
             padding: 12px 24px;
             background: #1e40af;
@@ -166,10 +167,11 @@
         </header>
         <div class="form-wrap">
             <form method="get" action="/">
-                <input type="text" name="url" placeholder="checkpoint.com" value="{{ url }}" required autocomplete="off">
+                <input type="text" name="url" placeholder="hmshelpdesk.hmsracing.com" value="{{ url }}" required autocomplete="off">
+                <input type="text" name="via" placeholder="Pre-cutover connect via (optional) — e.g. site.uuid.i2.checkpoint.com" value="{{ via or '' }}" autocomplete="off">
                 <button type="submit">Analyze website</button>
             </form>
-            <p class="hint">Passive lookup only (HTTP, DNS, WHOIS, SSL). No active probing. Timing is from this scanner host, not end users.</p>
+            <p class="hint">Passive lookup only (HTTP, DNS, WHOIS, SSL). Optional connect-via is a hosts-file override: Host and TLS stay on the site name, TCP goes to that CNAME/IP. Use the Check Point CNAME before public DNS is cut over.</p>
         </div>
 
         {% if result %}
@@ -177,6 +179,9 @@
                 <div class="error">{{ result.error }}</div>
                 <footer>Release {{ release }}</footer>
             {% else %}
+                {% if result.host_via %}
+                    <div class="banner banner-info">Pre-cutover: connected to {{ result.host_via.via }}{% if result.host_via.via_ips %} ({{ result.host_via.via_ips[:4]|join(', ') }}){% endif %}. Host/TLS name stayed {{ result.host_via.host }}. Public DNS below is still the origin.</div>
+                {% endif %}
                 {% if result.cloudguard %}
                     <div class="banner banner-danger">Check Point WAF detected (i2.checkpoint.com CNAME)</div>
                 {% endif %}
@@ -227,6 +232,12 @@
                     </div>
                     {% endif %}
                 </div>
+                {% if result.host_via_text %}
+                <div class="section">
+                    <h2>Pre-cutover connect</h2>
+                    <pre>{{ result.host_via_text }}</pre>
+                </div>
+                {% endif %}
                 <div class="section">
                     <h2>Connection</h2>
                     <pre>{{ result.performance }}</pre>
