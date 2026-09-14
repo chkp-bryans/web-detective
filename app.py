@@ -259,6 +259,15 @@ def _scan_inner(url: str, cancel_id: str | None = None, via: str | None = None) 
         result = _core_scan(url)
         if _is_cancelled():
             return {"error": "Scan cancelled.", "url": url, "cancelled": True}
+        if isinstance(result, dict) and result.get("error"):
+            try:
+                from website_detective_partial import continue_partial_scan, is_recoverable_fetch_error
+
+                if is_recoverable_fetch_error(result.get("error") or ""):
+                    _job_log("HTTPS/TLS failed; collecting DNS and other lookups")
+                    result = continue_partial_scan(result)
+            except Exception:
+                pass
         if isinstance(result, dict) and override:
             result["host_via"] = override
             result["host_via_text"] = format_override(override)
@@ -339,7 +348,7 @@ AUTH_USER = os.environ.get("BASIC_AUTH_USER", "")
 AUTH_PASSWORD = os.environ.get("BASIC_AUTH_PASSWORD", "")
 ALLOW_UNAUTHENTICATED = os.environ.get("DETECTIVE_ALLOW_UNAUTHENTICATED", "") == "1"
 WAFBUDDY_URL = os.environ.get("WAFBUDDY_URL", "https://wafbuddy.csadocs.com")
-APP_RELEASE = os.environ.get("RELEASE") or os.environ.get("APP_RELEASE") or "1.2.4"
+APP_RELEASE = os.environ.get("RELEASE") or os.environ.get("APP_RELEASE") or "1.2.5"
 
 
 def _authorized() -> bool:
